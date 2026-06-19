@@ -1,0 +1,24 @@
+import { numeric, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod/v4";
+
+export const transactionsTable = pgTable("transactions", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  type: text("type").notNull(),
+  amount: numeric("amount", { precision: 15, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("NGN"),
+  description: text("description").notNull(),
+  status: text("status").notNull().default("completed"),
+  reference: text("reference").notNull().unique(),
+  category: text("category"),
+  recipientName: text("recipient_name"),
+  recipientBank: text("recipient_bank"),
+  recipientAccount: text("recipient_account"),
+  senderName: text("sender_name"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const insertTransactionSchema = createInsertSchema(transactionsTable).omit({ createdAt: true });
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Transaction = typeof transactionsTable.$inferSelect;

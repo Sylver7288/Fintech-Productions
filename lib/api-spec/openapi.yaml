@@ -3,13 +3,28 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Personal banking API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: accounts
+    description: Bank account operations
+  - name: transactions
+    description: Transaction operations
+  - name: cards
+    description: Card operations
+  - name: transfers
+    description: Transfer operations
+  - name: savings
+    description: Savings operations
+  - name: profile
+    description: User profile operations
+
 paths:
   /healthz:
     get:
@@ -24,6 +39,469 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateProfile
+      tags: [profile]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /accounts:
+    get:
+      operationId: getAccounts
+      tags: [accounts]
+      summary: Get all accounts for current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Account"
+
+  /accounts/{id}:
+    get:
+      operationId: getAccount
+      tags: [accounts]
+      summary: Get account by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /transactions:
+    get:
+      operationId: getTransactions
+      tags: [transactions]
+      summary: Get transactions for current user
+      parameters:
+        - name: accountId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [credit, debit, all]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+  /transactions/{id}:
+    get:
+      operationId: getTransaction
+      tags: [transactions]
+      summary: Get transaction by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cards:
+    get:
+      operationId: getCards
+      tags: [cards]
+      summary: Get all cards for current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Card"
+    post:
+      operationId: createCard
+      tags: [cards]
+      summary: Request a new virtual card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+
+  /cards/{id}:
+    get:
+      operationId: getCard
+      tags: [cards]
+      summary: Get card details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cards/{id}/freeze:
+    patch:
+      operationId: freezeCard
+      tags: [cards]
+      summary: Freeze or unfreeze a card
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardFreezeInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /transfers:
+    post:
+      operationId: createTransfer
+      tags: [transfers]
+      summary: Initiate a money transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Bad request (insufficient funds, invalid amount, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /savings:
+    get:
+      operationId: getSavings
+      tags: [savings]
+      summary: Get all savings goals
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SavingsGoal"
+    post:
+      operationId: createSavings
+      tags: [savings]
+      summary: Create a new savings goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavingsInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsGoal"
+
+  /savings/{id}:
+    get:
+      operationId: getSavingsGoal
+      tags: [savings]
+      summary: Get savings goal by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsGoal"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateSavings
+      tags: [savings]
+      summary: Update a savings goal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavingsUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsGoal"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteSavings
+      tags: [savings]
+      summary: Delete a savings goal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No content
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /savings/{id}/topup:
+    post:
+      operationId: topUpSavings
+      tags: [savings]
+      summary: Top up a savings goal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavingsTopUpInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsGoal"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [accounts]
+      summary: Get dashboard summary (balance, spending, recent activity)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +512,338 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    RegisterInput:
+      type: object
+      required: [firstName, lastName, email, password, phone]
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+        lastName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        phone:
+          type: string
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    UserProfile:
+      type: object
+      required: [id, firstName, lastName, email, phone, createdAt]
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        bvn:
+          type: ["string", "null"]
+        kycStatus:
+          type: string
+          enum: [pending, verified, failed]
+        createdAt:
+          type: string
+          format: date-time
+
+    ProfileUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+
+    Account:
+      type: object
+      required: [id, userId, accountNumber, type, balance, currency, status, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        accountNumber:
+          type: string
+        type:
+          type: string
+          enum: [current, savings, wallet]
+        balance:
+          type: number
+        currency:
+          type: string
+          default: NGN
+        status:
+          type: string
+          enum: [active, frozen, closed]
+        bankName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    Transaction:
+      type: object
+      required: [id, accountId, type, amount, currency, description, status, reference, createdAt]
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+        type:
+          type: string
+          enum: [credit, debit]
+        amount:
+          type: number
+        currency:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, completed, failed, reversed]
+        reference:
+          type: string
+        category:
+          type: ["string", "null"]
+        recipientName:
+          type: ["string", "null"]
+        recipientBank:
+          type: ["string", "null"]
+        recipientAccount:
+          type: ["string", "null"]
+        senderName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    TransactionList:
+      type: object
+      required: [transactions, total, limit, offset]
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    Card:
+      type: object
+      required: [id, userId, accountId, type, last4, expiryMonth, expiryYear, status, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        accountId:
+          type: string
+        type:
+          type: string
+          enum: [virtual, physical]
+        last4:
+          type: string
+        expiryMonth:
+          type: string
+        expiryYear:
+          type: string
+        status:
+          type: string
+          enum: [active, frozen, expired, blocked]
+        cardHolder:
+          type: string
+        color:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    CardInput:
+      type: object
+      required: [accountId, type]
+      properties:
+        accountId:
+          type: string
+        type:
+          type: string
+          enum: [virtual, physical]
+        color:
+          type: string
+
+    CardFreezeInput:
+      type: object
+      required: [frozen]
+      properties:
+        frozen:
+          type: boolean
+
+    TransferInput:
+      type: object
+      required: [fromAccountId, amount, recipientName, recipientBank, recipientAccount, description]
+      properties:
+        fromAccountId:
+          type: string
+        amount:
+          type: number
+          minimum: 1
+        recipientName:
+          type: string
+        recipientBank:
+          type: string
+        recipientAccount:
+          type: string
+        description:
+          type: string
+
+    SavingsGoal:
+      type: object
+      required: [id, userId, name, targetAmount, currentAmount, currency, status, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        targetAmount:
+          type: number
+        currentAmount:
+          type: number
+        currency:
+          type: string
+        emoji:
+          type: ["string", "null"]
+        color:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, completed, paused]
+        targetDate:
+          type: ["string", "null"]
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+
+    SavingsInput:
+      type: object
+      required: [name, targetAmount]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        targetAmount:
+          type: number
+          minimum: 1
+        emoji:
+          type: string
+        color:
+          type: string
+        targetDate:
+          type: string
+          format: date
+
+    SavingsUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        targetAmount:
+          type: number
+        emoji:
+          type: string
+        color:
+          type: string
+        targetDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, completed, paused]
+
+    SavingsTopUpInput:
+      type: object
+      required: [amount, fromAccountId]
+      properties:
+        amount:
+          type: number
+          minimum: 1
+        fromAccountId:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required: [totalBalance, monthlySpend, monthlyIncome, savingsTotal, recentTransactions]
+      properties:
+        totalBalance:
+          type: number
+        monthlySpend:
+          type: number
+        monthlyIncome:
+          type: number
+        savingsTotal:
+          type: number
+        recentTransactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        spendingByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySpend"
+
+    CategorySpend:
+      type: object
+      required: [category, amount, percentage]
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+        percentage:
+          type: number
