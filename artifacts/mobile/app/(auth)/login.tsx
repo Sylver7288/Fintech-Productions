@@ -27,10 +27,10 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      const res = await loginApi({ data: { email: email.trim().toLowerCase(), password } });
+      const res = await loginApi({ email: email.trim().toLowerCase(), password });
       await login(res.token, res.user as any);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace("/(tabs)/");
+      router.replace("/(tabs)");
     } catch (err: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert("Login failed", err?.data?.error ?? "Invalid credentials");

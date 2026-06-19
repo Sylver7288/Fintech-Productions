@@ -35,10 +35,10 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
-      const res = await registerApi({ data: { firstName, lastName, email: email.trim().toLowerCase(), phone, password } });
+      const res = await registerApi({ firstName, lastName, email: email.trim().toLowerCase(), phone, password });
       await login(res.token, res.user as any);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace("/(tabs)/");
+      router.replace("/(tabs)");
     } catch (err: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert("Registration failed", err?.data?.error ?? "Something went wrong");

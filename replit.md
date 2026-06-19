@@ -1,10 +1,11 @@
-# [Project name]
+# NovaPay
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A full-stack personal banking mobile app (like Kuda) — register, log in, manage accounts, send money, track transactions, manage cards, and set savings goals.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080, proxy at `/api`)
+- `pnpm --filter @workspace/mobile run dev` — run the Expo mobile app (port 18115, proxy at `/`)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -14,31 +15,54 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- API: Express 5 (artifact: `artifacts/api-server`)
+- Mobile: Expo / React Native (artifact: `artifacts/mobile`)
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
+- API codegen: Orval (from OpenAPI spec in `lib/api-spec/openapi.yaml`)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — source of truth for all API contracts
+- `lib/api-client-react/` — generated React Query hooks (run codegen to update)
+- `lib/api-zod/` — generated Zod schemas for request/response validation
+- `lib/db/src/schema/` — Drizzle table definitions (users, accounts, transactions, cards, savings)
+- `artifacts/api-server/src/routes/` — Express route handlers
+- `artifacts/api-server/src/middlewares/auth.ts` — Bearer token auth middleware
+- `artifacts/api-server/src/lib/tokens.ts` — in-memory token store
+- `artifacts/mobile/app/` — Expo Router screens
+- `artifacts/mobile/context/AuthContext.tsx` — auth state + token persistence
+- `artifacts/mobile/constants/colors.ts` — design tokens (purple `#6C5CE7` primary theme)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **No JWT** — uses in-memory token store (`Map<token, userId>`) for simplicity. Tokens are lost on server restart (by design for dev); swap for a DB-backed session table for production.
+- **Contract-first API** — OpenAPI spec defines the contract; Orval generates both the React Query hooks and Zod validation schemas from it. Never hand-write these files.
+- **Seeded accounts on register** — new users get a current account with ₦71,700 balance, a virtual card, and 8 demo transactions so the app looks populated from first login.
+- **Currency** — Nigerian Naira (₦ / NGN) throughout.
+- **Numeric DB columns** — `balance` and `amount` fields are `numeric` in Postgres but always serialized as JS `number` in API responses (via `parseFloat`). The OpenAPI spec types them as `number`.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Auth**: register with name/email/phone/password; login; persistent session via AsyncStorage
+- **Home dashboard**: total balance, monthly income/spend, quick actions, recent transactions
+- **Transactions**: filterable list (All / Money In / Money Out), transaction detail screen
+- **Transfer**: send money to any bank with amount, recipient, description
+- **Cards**: view virtual cards, freeze/unfreeze
+- **Savings goals**: create goals with emoji + color, track progress
+- **Profile**: user info, KYC status, sign out
+
+## Gotchas
+
+- Run `pnpm --filter @workspace/api-spec run codegen` after any change to `openapi.yaml` — the generated files in `lib/api-client-react` and `lib/api-zod` must stay in sync.
+- The API server rebuilds from source on each `dev` start (esbuild). Cold start takes ~400ms.
+- `pnpm run dev` at workspace root is intentionally absent. Start each artifact via its workflow.
+- In the mobile app, `setBaseUrl` is called at module level in `app/_layout.tsx` using `EXPO_PUBLIC_DOMAIN`. On native, this must point to the proxy domain, not localhost.
 
 ## User preferences
 
 _Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
 
 ## Pointers
 
