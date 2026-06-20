@@ -97,7 +97,8 @@ export default function HomeScreen() {
             }
           </View>
           <TouchableOpacity onPress={() => setBalanceVisible(v => !v)} style={styles.eyeBtn}>
-            <Feather name={balanceVisible ? "eye" : "eye-off"} size={20} color="rgba(255,255,255,0.8)" />
+            <Feather name={balanceVisible ? "eye" : "eye-off"} size={16} color="#fff" />
+            <Text style={styles.eyeLabel}>{balanceVisible ? "Hide" : "Show"}</Text>
           </TouchableOpacity>
         </View>
 
@@ -235,7 +236,12 @@ const styles = StyleSheet.create({
   balanceTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   balanceLabel: { color: "rgba(255,255,255,0.75)", fontSize: 13, fontFamily: "Inter_400Regular" },
   balanceAmount: { color: "#fff", fontSize: 34, fontFamily: "Inter_700Bold", marginTop: 6 },
-  eyeBtn: { padding: 8 },
+  eyeBtn: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20,
+  },
+  eyeLabel: { color: "#fff", fontSize: 12, fontFamily: "Inter_600SemiBold" },
   accountChip: {
     marginTop: 16,
     marginBottom: 20,
