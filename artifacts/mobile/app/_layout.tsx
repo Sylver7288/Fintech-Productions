@@ -38,6 +38,11 @@ function RootLayoutNav() {
       <Stack.Screen name="receive" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
       <Stack.Screen name="transaction/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="personal-info" options={{ headerShown: false }} />
+      <Stack.Screen name="security" options={{ headerShown: false }} />
+      <Stack.Screen name="support" options={{ headerShown: false }} />
+      <Stack.Screen name="terms" options={{ headerShown: false }} />
+      <Stack.Screen name="kyc" options={{ headerShown: false }} />
     </Stack>
   );
 }

@@ -78,11 +78,17 @@ export const GetProfileResponse = zod.object({
 /**
  * @summary Update user profile
  */
+export const updateProfileBodyBvnMin = 11;
+export const updateProfileBodyBvnMax = 11;
+
+
+
 export const UpdateProfileBody = zod.object({
   "firstName": zod.string().optional(),
   "lastName": zod.string().optional(),
   "phone": zod.string().optional(),
-  "avatarUrl": zod.string().optional()
+  "avatarUrl": zod.string().optional(),
+  "bvn": zod.string().min(updateProfileBodyBvnMin).max(updateProfileBodyBvnMax).optional()
 })
 
 export const UpdateProfileResponse = zod.object({

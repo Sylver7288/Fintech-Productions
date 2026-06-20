@@ -594,6 +594,10 @@ components:
           type: string
         avatarUrl:
           type: string
+        bvn:
+          type: string
+          minLength: 11
+          maxLength: 11
 
     Account:
       type: object

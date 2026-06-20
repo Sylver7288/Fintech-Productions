@@ -75,26 +75,30 @@ export default function ProfileScreen() {
             {user?.firstName} {user?.lastName}
           </Text>
           <Text style={[styles.userEmail, { color: colors.mutedForeground }]}>{user?.email}</Text>
-          <View style={[styles.kycBadge, { backgroundColor: user?.kycStatus === "verified" ? "#E6F8F3" : "#FFF8E6" }]}>
+          <TouchableOpacity
+            style={[styles.kycBadge, { backgroundColor: user?.kycStatus === "verified" ? "#E6F8F3" : "#FFF8E6" }]}
+            onPress={() => router.push("/kyc")}
+            activeOpacity={0.7}
+          >
             <View style={[styles.kycDot, { backgroundColor: user?.kycStatus === "verified" ? colors.success : colors.warning }]} />
             <Text style={[styles.kycText, { color: user?.kycStatus === "verified" ? colors.success : colors.warning }]}>
-              {user?.kycStatus === "verified" ? "Verified" : "Verification pending"}
+              {user?.kycStatus === "verified" ? "Verified" : "Verification pending — tap to verify"}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
       <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Account</Text>
       <View style={[styles.menuGroup, { backgroundColor: colors.card }]}>
-        <MenuItem icon="user" label="Personal Information" sub={user?.phone} onPress={() => {}} />
-        <MenuItem icon="shield" label="Security" sub="PIN, biometrics" onPress={() => {}} />
-        <MenuItem icon="bell" label="Notifications" onPress={() => {}} />
+        <MenuItem icon="user" label="Personal Information" sub={user?.phone} onPress={() => router.push("/personal-info")} />
+        <MenuItem icon="shield" label="Security" sub="PIN, biometrics" onPress={() => router.push("/security")} />
+        <MenuItem icon="bell" label="Notifications" onPress={() => router.push("/notifications")} />
       </View>
 
       <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Support</Text>
       <View style={[styles.menuGroup, { backgroundColor: colors.card }]}>
-        <MenuItem icon="help-circle" label="Help & Support" onPress={() => {}} />
-        <MenuItem icon="file-text" label="Terms & Privacy" onPress={() => {}} />
+        <MenuItem icon="help-circle" label="Help & Support" onPress={() => router.push("/support")} />
+        <MenuItem icon="file-text" label="Terms & Privacy" onPress={() => router.push("/terms")} />
         <MenuItem icon="info" label="App version" sub="1.0.0" onPress={() => {}} />
       </View>
 

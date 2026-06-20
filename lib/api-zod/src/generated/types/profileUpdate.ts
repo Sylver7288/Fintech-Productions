@@ -11,4 +11,9 @@ export interface ProfileUpdate {
   lastName?: string;
   phone?: string;
   avatarUrl?: string;
+  /**
+     * @minLength 11
+     * @maxLength 11
+     */
+  bvn?: string;
 }
