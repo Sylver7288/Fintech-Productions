@@ -24,6 +24,8 @@ import type {
   AirtimeInput,
   AnalyticsSummary,
   AuthResponse,
+  Beneficiary,
+  BeneficiaryInput,
   BillInput,
   Card,
   CardFreezeInput,
@@ -2287,6 +2289,301 @@ export function useGetReferral<TData = Awaited<ReturnType<typeof getReferral>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetReferralQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBeneficiariesUrl = () => {
+
+
+
+
+  return `/api/beneficiaries`
+}
+
+/**
+ * @summary Get saved beneficiaries
+ */
+export const getBeneficiaries = async ( options?: RequestInit): Promise<Beneficiary[]> => {
+
+  return customFetch<Beneficiary[]>(getGetBeneficiariesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBeneficiariesQueryKey = () => {
+    return [
+    `/api/beneficiaries`
+    ] as const;
+    }
+
+
+export const getGetBeneficiariesQueryOptions = <TData = Awaited<ReturnType<typeof getBeneficiaries>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBeneficiaries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBeneficiariesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBeneficiaries>>> = ({ signal }) => getBeneficiaries({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBeneficiaries>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBeneficiariesQueryResult = NonNullable<Awaited<ReturnType<typeof getBeneficiaries>>>
+export type GetBeneficiariesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get saved beneficiaries
+ */
+
+export function useGetBeneficiaries<TData = Awaited<ReturnType<typeof getBeneficiaries>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBeneficiaries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBeneficiariesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateBeneficiaryUrl = () => {
+
+
+
+
+  return `/api/beneficiaries`
+}
+
+/**
+ * @summary Save a new beneficiary
+ */
+export const createBeneficiary = async (beneficiaryInput: BeneficiaryInput, options?: RequestInit): Promise<Beneficiary> => {
+
+  return customFetch<Beneficiary>(getCreateBeneficiaryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      beneficiaryInput,)
+  }
+);}
+
+
+
+
+export const getCreateBeneficiaryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBeneficiary>>, TError,{data: BodyType<BeneficiaryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createBeneficiary>>, TError,{data: BodyType<BeneficiaryInput>}, TContext> => {
+
+const mutationKey = ['createBeneficiary'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBeneficiary>>, {data: BodyType<BeneficiaryInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createBeneficiary(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateBeneficiaryMutationResult = NonNullable<Awaited<ReturnType<typeof createBeneficiary>>>
+    export type CreateBeneficiaryMutationBody = BodyType<BeneficiaryInput>
+    export type CreateBeneficiaryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save a new beneficiary
+ */
+export const useCreateBeneficiary = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBeneficiary>>, TError,{data: BodyType<BeneficiaryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createBeneficiary>>,
+        TError,
+        {data: BodyType<BeneficiaryInput>},
+        TContext
+      > => {
+      return useMutation(getCreateBeneficiaryMutationOptions(options));
+    }
+
+export const getDeleteBeneficiaryUrl = (id: string,) => {
+
+
+
+
+  return `/api/beneficiaries/${id}`
+}
+
+/**
+ * @summary Delete a saved beneficiary
+ */
+export const deleteBeneficiary = async (id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteBeneficiaryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteBeneficiaryMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBeneficiary>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteBeneficiary>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteBeneficiary'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBeneficiary>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteBeneficiary(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteBeneficiaryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBeneficiary>>>
+
+    export type DeleteBeneficiaryMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Delete a saved beneficiary
+ */
+export const useDeleteBeneficiary = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBeneficiary>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteBeneficiary>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteBeneficiaryMutationOptions(options));
+    }
+
+export const getGetAccountStatementUrl = (id: string,) => {
+
+
+
+
+  return `/api/accounts/${id}/statement`
+}
+
+/**
+ * @summary Get account statement (transactions in date range)
+ */
+export const getAccountStatement = async (id: string, options?: RequestInit): Promise<Transaction[]> => {
+
+  return customFetch<Transaction[]>(getGetAccountStatementUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAccountStatementQueryKey = (id: string,) => {
+    return [
+    `/api/accounts/${id}/statement`
+    ] as const;
+    }
+
+
+export const getGetAccountStatementQueryOptions = <TData = Awaited<ReturnType<typeof getAccountStatement>>, TError = ErrorType<ErrorResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccountStatement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAccountStatementQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountStatement>>> = ({ signal }) => getAccountStatement(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAccountStatement>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAccountStatementQueryResult = NonNullable<Awaited<ReturnType<typeof getAccountStatement>>>
+export type GetAccountStatementQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get account statement (transactions in date range)
+ */
+
+export function useGetAccountStatement<TData = Awaited<ReturnType<typeof getAccountStatement>>, TError = ErrorType<ErrorResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccountStatement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAccountStatementQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

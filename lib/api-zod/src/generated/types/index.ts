@@ -15,6 +15,8 @@ export * from './airtimeInputPurchaseType';
 export * from './analyticsSummary';
 export * from './analyticsSummaryMonthlyTrendItem';
 export * from './authResponse';
+export * from './beneficiary';
+export * from './beneficiaryInput';
 export * from './billInput';
 export * from './billInputCategory';
 export * from './card';

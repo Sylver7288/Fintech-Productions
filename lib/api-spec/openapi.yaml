@@ -699,6 +699,94 @@ paths:
               schema:
                 $ref: "#/components/schemas/ReferralInfo"
 
+  /beneficiaries:
+    get:
+      operationId: getBeneficiaries
+      tags: [beneficiaries]
+      summary: Get saved beneficiaries
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Beneficiary"
+    post:
+      operationId: createBeneficiary
+      tags: [beneficiaries]
+      summary: Save a new beneficiary
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BeneficiaryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Beneficiary"
+
+  /beneficiaries/{id}:
+    delete:
+      operationId: deleteBeneficiary
+      tags: [beneficiaries]
+      summary: Delete a saved beneficiary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /accounts/{id}/statement:
+    get:
+      operationId: getAccountStatement
+      tags: [accounts]
+      summary: Get account statement (transactions in date range)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -1226,4 +1314,33 @@ components:
         pendingBonus:
           type: number
         shareUrl:
+          type: string
+
+    Beneficiary:
+      type: object
+      required: [id, userId, name, bank, accountNumber, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        bank:
+          type: string
+        accountNumber:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    BeneficiaryInput:
+      type: object
+      required: [name, bank, accountNumber]
+      properties:
+        name:
+          type: string
+        bank:
+          type: string
+        accountNumber:
           type: string

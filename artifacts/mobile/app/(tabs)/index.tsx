@@ -24,6 +24,10 @@ const SERVICES = [
   { icon: "credit-card", label: "Credit", route: "/loans", color: "#E17055" },
   { icon: "globe", label: "FX Transfer", route: "/international-transfer", color: "#2D3436" },
   { icon: "gift", label: "Refer & Earn", route: "/referral", color: "#E84393" },
+  { icon: "camera", label: "Scan & Pay", route: "/qr-scanner", color: "#6C5CE7" },
+  { icon: "users", label: "Split Bill", route: "/split-bill", color: "#00B894" },
+  { icon: "map-pin", label: "ATM Locator", route: "/atm-locator", color: "#0984E3" },
+  { icon: "file-text", label: "Statement", route: "/statement", color: "#636E72" },
 ] as const;
 
 export default function HomeScreen() {

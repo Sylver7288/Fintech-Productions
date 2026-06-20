@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, accountsTable, transactionsTable, savingsTable } from "@workspace/db";
-import { eq, and, gte, sum, desc } from "drizzle-orm";
+import { eq, and, gte, lte, sum, desc } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
 
 const router: IRouter = Router();
@@ -102,6 +102,40 @@ router.get("/dashboard/summary", requireAuth, async (req: AuthRequest, res): Pro
     })),
     spendingByCategory,
   });
+});
+
+router.get("/accounts/:id/statement", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const { from, to } = req.query as { from?: string; to?: string };
+
+  const [account] = await db.select().from(accountsTable)
+    .where(and(eq(accountsTable.id, raw), eq(accountsTable.userId, req.userId!)));
+  if (!account) {
+    res.status(404).json({ error: "Account not found" });
+    return;
+  }
+
+  const toDate = to ? new Date(to) : null;
+  if (toDate) toDate.setDate(toDate.getDate() + 1);
+
+  const txns = await db.select().from(transactionsTable)
+    .where(and(
+      eq(transactionsTable.accountId, raw),
+      from ? gte(transactionsTable.createdAt, new Date(from)) : undefined,
+      toDate ? lte(transactionsTable.createdAt, toDate) : undefined,
+    ))
+    .orderBy(desc(transactionsTable.createdAt))
+    .limit(500);
+
+  res.json(txns.map(t => ({
+    ...t,
+    amount: parseFloat(t.amount),
+    recipientName: t.recipientName ?? null,
+    recipientBank: t.recipientBank ?? null,
+    recipientAccount: t.recipientAccount ?? null,
+    senderName: t.senderName ?? null,
+    category: t.category ?? null,
+  })));
 });
 
 export default router;

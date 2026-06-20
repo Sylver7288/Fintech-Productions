@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ActivityIndicator, Alert, ScrollView, Platform
+  ActivityIndicator, Alert, ScrollView, Platform,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
-import { useGetAccounts, useCreateTransfer, getGetAccountsQueryKey, getGetTransactionsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetAccounts, useCreateTransfer,
+  getGetAccountsQueryKey, getGetTransactionsQueryKey,
+  useGetBeneficiaries,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 const BANKS = [
@@ -21,17 +25,39 @@ export default function TransferScreen() {
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
   const { data: accounts } = useGetAccounts();
+  const { data: beneficiaries } = useGetBeneficiaries();
   const createTransfer = useCreateTransfer();
 
-  const [amount, setAmount] = useState("");
-  const [recipientName, setRecipientName] = useState("");
-  const [recipientBank, setRecipientBank] = useState("Kuda Bank");
-  const [recipientAccount, setRecipientAccount] = useState("");
+  const params = useLocalSearchParams<{
+    prefillName?: string;
+    prefillAccount?: string;
+    prefillBank?: string;
+    prefillAmount?: string;
+  }>();
+
+  const [amount, setAmount] = useState(params.prefillAmount ?? "");
+  const [recipientName, setRecipientName] = useState(params.prefillName ?? "");
+  const [recipientBank, setRecipientBank] = useState(params.prefillBank ?? "Kuda Bank");
+  const [recipientAccount, setRecipientAccount] = useState(params.prefillAccount ?? "");
   const [description, setDescription] = useState("");
   const [showBankPicker, setShowBankPicker] = useState(false);
 
   const fromAccount = accounts?.[0];
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
+
+  useEffect(() => {
+    if (params.prefillName) setRecipientName(params.prefillName);
+    if (params.prefillAccount) setRecipientAccount(params.prefillAccount);
+    if (params.prefillBank) setRecipientBank(params.prefillBank);
+    if (params.prefillAmount) setAmount(params.prefillAmount);
+  }, [params.prefillName, params.prefillAccount, params.prefillBank, params.prefillAmount]);
+
+  function fillFromBeneficiary(b: { name: string; bank: string; accountNumber: string }) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setRecipientName(b.name);
+    setRecipientBank(b.bank);
+    setRecipientAccount(b.accountNumber);
+  }
 
   async function handleTransfer() {
     if (!amount || !recipientName || !recipientAccount || !description) {
@@ -91,10 +117,38 @@ export default function TransferScreen() {
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
         <Text style={[styles.navTitle, { color: colors.foreground }]}>Send Money</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity
+          onPress={() => router.push({ pathname: "/beneficiaries" as any, params: { fromTransfer: "true" } })}
+        >
+          <Feather name="users" size={20} color={colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled">
+        {/* Saved contacts */}
+        {beneficiaries && beneficiaries.length > 0 && (
+          <View>
+            <Text style={[styles.contactsLabel, { color: colors.mutedForeground }]}>Saved contacts</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.contactsScroll} contentContainerStyle={{ gap: 10 }}>
+              {beneficiaries.map(b => (
+                <TouchableOpacity
+                  key={b.id}
+                  style={[styles.contactChip, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={() => fillFromBeneficiary(b)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.contactAvatar, { backgroundColor: colors.secondary }]}>
+                    <Text style={[styles.contactInitial, { color: colors.primary }]}>
+                      {b.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={[styles.contactName, { color: colors.foreground }]} numberOfLines={1}>{b.name.split(" ")[0]}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Amount */}
         <View style={[styles.amountCard, { backgroundColor: colors.primary }]}>
           <Text style={styles.amountLabel}>Amount to send</Text>
@@ -214,6 +268,15 @@ const styles = StyleSheet.create({
   back: { width: 40 },
   navTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
   content: { paddingHorizontal: 20, gap: 16 },
+  contactsLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold", letterSpacing: 0.5, marginBottom: 10, textTransform: "uppercase" },
+  contactsScroll: { marginBottom: 4 },
+  contactChip: {
+    alignItems: "center", gap: 6, paddingVertical: 10, paddingHorizontal: 14,
+    borderRadius: 16, borderWidth: 1, minWidth: 72,
+  },
+  contactAvatar: { width: 40, height: 40, borderRadius: 20, justifyContent: "center", alignItems: "center" },
+  contactInitial: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  contactName: { fontSize: 11, fontFamily: "Inter_500Medium" },
   amountCard: { borderRadius: 24, padding: 24 },
   amountLabel: { color: "rgba(255,255,255,0.75)", fontSize: 13, fontFamily: "Inter_400Regular" },
   amountRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },

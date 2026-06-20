@@ -1,8 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from "react-native";
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  ActivityIndicator, Platform, Alert, Share,
+} from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
+import * as Sharing from "expo-sharing";
 import { useColors } from "@/hooks/useColors";
 import { useGetTransaction } from "@workspace/api-client-react";
 
@@ -14,6 +19,35 @@ export default function TransactionDetailScreen() {
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
   const isCredit = txn?.type === "credit";
+
+  async function handleShare() {
+    if (!txn) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const lines = [
+      "NovaPay Transaction Receipt",
+      "─────────────────────────────",
+      `Type:      ${txn.type === "credit" ? "Money received" : "Money sent"}`,
+      `Amount:    ${txn.type === "credit" ? "+" : "-"}₦${txn.amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}`,
+      `Desc:      ${txn.description}`,
+      `Reference: ${txn.reference}`,
+      `Status:    ${txn.status}`,
+      `Date:      ${new Date(txn.createdAt).toLocaleString("en-NG")}`,
+      txn.recipientName ? `To:        ${txn.recipientName}` : "",
+      txn.recipientBank ? `Bank:      ${txn.recipientBank}` : "",
+      txn.recipientAccount ? `Account:   ${txn.recipientAccount}` : "",
+      txn.senderName ? `From:      ${txn.senderName}` : "",
+      "─────────────────────────────",
+      "Powered by NovaPay",
+    ].filter(Boolean).join("\n");
+
+    try {
+      if (await Sharing.isAvailableAsync()) {
+        await Share.share({ message: lines, title: "NovaPay Receipt" });
+      } else {
+        await Share.share({ message: lines, title: "NovaPay Receipt" });
+      }
+    } catch {}
+  }
 
   if (isLoading) {
     return (
@@ -38,7 +72,9 @@ export default function TransactionDetailScreen() {
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
         <Text style={[styles.navTitle, { color: colors.foreground }]}>Transaction</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity onPress={handleShare}>
+          <Feather name="share-2" size={20} color={colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}>
@@ -80,6 +116,16 @@ export default function TransactionDetailScreen() {
             </View>
           ))}
         </View>
+
+        {/* Share button */}
+        <TouchableOpacity
+          style={[styles.shareBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={handleShare}
+          activeOpacity={0.8}
+        >
+          <Feather name="share-2" size={18} color={colors.primary} />
+          <Text style={[styles.shareBtnText, { color: colors.primary }]}>Share Receipt</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -102,4 +148,9 @@ const styles = StyleSheet.create({
   detailRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, gap: 20 },
   detailLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
   detailValue: { fontSize: 13, fontFamily: "Inter_600SemiBold", textAlign: "right", flex: 1 },
+  shareBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 10, height: 52, borderRadius: 16, borderWidth: 1,
+  },
+  shareBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
 });

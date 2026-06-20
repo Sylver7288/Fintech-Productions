@@ -607,3 +607,61 @@ export const GetReferralResponse = zod.object({
 })
 
 
+/**
+ * @summary Get saved beneficiaries
+ */
+export const GetBeneficiariesResponseItem = zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "bank": zod.string(),
+  "accountNumber": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const GetBeneficiariesResponse = zod.array(GetBeneficiariesResponseItem)
+
+
+/**
+ * @summary Save a new beneficiary
+ */
+export const CreateBeneficiaryBody = zod.object({
+  "name": zod.string(),
+  "bank": zod.string(),
+  "accountNumber": zod.string()
+})
+
+
+/**
+ * @summary Delete a saved beneficiary
+ */
+export const DeleteBeneficiaryParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+/**
+ * @summary Get account statement (transactions in date range)
+ */
+export const GetAccountStatementParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetAccountStatementResponseItem = zod.object({
+  "id": zod.string(),
+  "accountId": zod.string(),
+  "type": zod.enum(['credit', 'debit']),
+  "amount": zod.number(),
+  "currency": zod.string(),
+  "description": zod.string(),
+  "status": zod.enum(['pending', 'completed', 'failed', 'reversed']),
+  "reference": zod.string(),
+  "category": zod.string().nullish(),
+  "recipientName": zod.string().nullish(),
+  "recipientBank": zod.string().nullish(),
+  "recipientAccount": zod.string().nullish(),
+  "senderName": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const GetAccountStatementResponse = zod.array(GetAccountStatementResponseItem)
+
+

@@ -13,6 +13,7 @@ import scheduledTransfersRouter from "./scheduled-transfers";
 import loansRouter from "./loans";
 import analyticsRouter from "./analytics";
 import referralRouter from "./referral";
+import beneficiariesRouter from "./beneficiaries";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(scheduledTransfersRouter);
 router.use(loansRouter);
 router.use(analyticsRouter);
 router.use(referralRouter);
+router.use(beneficiariesRouter);
 
 export default router;

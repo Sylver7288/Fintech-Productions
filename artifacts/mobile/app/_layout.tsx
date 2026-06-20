@@ -6,7 +6,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -15,7 +15,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { setBaseUrl } from "@workspace/api-client-react";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { AppProvider, useApp } from "@/context/AppContext";
 
 // Set API base URL for all requests
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
@@ -29,28 +30,56 @@ const queryClient = new QueryClient({
   },
 });
 
+function NavigationController() {
+  const { pinEnabled, pinVerified, hasSeenOnboarding, isLoaded: appLoaded } = useApp();
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!appLoaded || authLoading) return;
+    if (!user && !hasSeenOnboarding) {
+      router.replace("/onboarding" as any);
+    } else if (user && pinEnabled && !pinVerified) {
+      router.replace("/pin-verify" as any);
+    }
+  }, [appLoaded, authLoading, user, pinEnabled, pinVerified, hasSeenOnboarding]);
+
+  return null;
+}
+
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="transfer" options={{ headerShown: false }} />
-      <Stack.Screen name="receive" options={{ headerShown: false }} />
-      <Stack.Screen name="notifications" options={{ headerShown: false }} />
-      <Stack.Screen name="transaction/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="personal-info" options={{ headerShown: false }} />
-      <Stack.Screen name="security" options={{ headerShown: false }} />
-      <Stack.Screen name="support" options={{ headerShown: false }} />
-      <Stack.Screen name="terms" options={{ headerShown: false }} />
-      <Stack.Screen name="kyc" options={{ headerShown: false }} />
-      <Stack.Screen name="airtime" options={{ headerShown: false }} />
-      <Stack.Screen name="bills" options={{ headerShown: false }} />
-      <Stack.Screen name="scheduled-transfers" options={{ headerShown: false }} />
-      <Stack.Screen name="analytics" options={{ headerShown: false }} />
-      <Stack.Screen name="loans" options={{ headerShown: false }} />
-      <Stack.Screen name="international-transfer" options={{ headerShown: false }} />
-      <Stack.Screen name="referral" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <NavigationController />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="pin-setup" options={{ headerShown: false }} />
+        <Stack.Screen name="pin-verify" options={{ headerShown: false }} />
+        <Stack.Screen name="transfer" options={{ headerShown: false }} />
+        <Stack.Screen name="receive" options={{ headerShown: false }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
+        <Stack.Screen name="transaction/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="personal-info" options={{ headerShown: false }} />
+        <Stack.Screen name="security" options={{ headerShown: false }} />
+        <Stack.Screen name="support" options={{ headerShown: false }} />
+        <Stack.Screen name="terms" options={{ headerShown: false }} />
+        <Stack.Screen name="kyc" options={{ headerShown: false }} />
+        <Stack.Screen name="airtime" options={{ headerShown: false }} />
+        <Stack.Screen name="bills" options={{ headerShown: false }} />
+        <Stack.Screen name="scheduled-transfers" options={{ headerShown: false }} />
+        <Stack.Screen name="analytics" options={{ headerShown: false }} />
+        <Stack.Screen name="loans" options={{ headerShown: false }} />
+        <Stack.Screen name="international-transfer" options={{ headerShown: false }} />
+        <Stack.Screen name="referral" options={{ headerShown: false }} />
+        <Stack.Screen name="qr-scanner" options={{ headerShown: false }} />
+        <Stack.Screen name="beneficiaries" options={{ headerShown: false }} />
+        <Stack.Screen name="split-bill" options={{ headerShown: false }} />
+        <Stack.Screen name="atm-locator" options={{ headerShown: false }} />
+        <Stack.Screen name="statement" options={{ headerShown: false }} />
+        <Stack.Screen name="card-limits" options={{ headerShown: false }} />
+      </Stack>
+    </>
   );
 }
 
@@ -77,7 +106,9 @@ export default function RootLayout() {
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
               <AuthProvider>
-                <RootLayoutNav />
+                <AppProvider>
+                  <RootLayoutNav />
+                </AppProvider>
               </AuthProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>

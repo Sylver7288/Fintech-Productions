@@ -449,6 +449,21 @@ export interface ReferralInfo {
   shareUrl: string;
 }
 
+export interface Beneficiary {
+  id: string;
+  userId: string;
+  name: string;
+  bank: string;
+  accountNumber: string;
+  createdAt: string;
+}
+
+export interface BeneficiaryInput {
+  name: string;
+  bank: string;
+  accountNumber: string;
+}
+
 export type GetTransactionsParams = {
 accountId?: string;
 limit?: number;
