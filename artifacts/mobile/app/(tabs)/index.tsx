@@ -10,25 +10,14 @@ import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
 import { TransactionItem } from "@/components/TransactionItem";
 import { QuickAction } from "@/components/QuickAction";
+import { SERVICES } from "@/constants/services";
 import {
   useGetDashboardSummary, useGetAccounts,
   getGetDashboardSummaryQueryKey, getGetAccountsQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-const SERVICES = [
-  { icon: "phone", label: "Airtime & Data", route: "/airtime", color: "#00B894" },
-  { icon: "zap", label: "Pay Bills", route: "/bills", color: "#FDCB6E" },
-  { icon: "repeat", label: "Scheduled", route: "/scheduled-transfers", color: "#6C5CE7" },
-  { icon: "bar-chart-2", label: "Analytics", route: "/analytics", color: "#0984E3" },
-  { icon: "credit-card", label: "Credit", route: "/loans", color: "#E17055" },
-  { icon: "globe", label: "FX Transfer", route: "/international-transfer", color: "#2D3436" },
-  { icon: "gift", label: "Refer & Earn", route: "/referral", color: "#E84393" },
-  { icon: "camera", label: "Scan & Pay", route: "/qr-scanner", color: "#6C5CE7" },
-  { icon: "users", label: "Split Bill", route: "/split-bill", color: "#00B894" },
-  { icon: "map-pin", label: "ATM Locator", route: "/atm-locator", color: "#0984E3" },
-  { icon: "file-text", label: "Statement", route: "/statement", color: "#636E72" },
-] as const;
+const MAX_VISIBLE_SERVICES = 7;
 
 export default function HomeScreen() {
   const colors = useColors();
@@ -74,12 +63,20 @@ export default function HomeScreen() {
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{greeting()},</Text>
           <Text style={[styles.name, { color: colors.foreground }]}>{user?.firstName ?? "User"} 👋</Text>
         </View>
-        <TouchableOpacity
-          style={[styles.notifBtn, { backgroundColor: colors.card }]}
-          onPress={() => router.push("/notifications")}
-        >
-          <Feather name="bell" size={20} color={colors.foreground} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[styles.notifBtn, { backgroundColor: colors.card }]}
+            onPress={() => router.push("/support")}
+          >
+            <Feather name="help-circle" size={20} color={colors.foreground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.notifBtn, { backgroundColor: colors.card }]}
+            onPress={() => router.push("/notifications")}
+          >
+            <Feather name="bell" size={20} color={colors.foreground} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Balance Card */}
@@ -145,7 +142,7 @@ export default function HomeScreen() {
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>More services</Text>
       </View>
       <View style={[styles.servicesGrid, { backgroundColor: colors.card }]}>
-        {SERVICES.map(s => (
+        {(SERVICES.length > 8 ? SERVICES.slice(0, MAX_VISIBLE_SERVICES) : SERVICES).map(s => (
           <TouchableOpacity
             key={s.label}
             style={styles.serviceItem}
@@ -157,6 +154,17 @@ export default function HomeScreen() {
             <Text style={[styles.serviceLabel, { color: colors.foreground }]}>{s.label}</Text>
           </TouchableOpacity>
         ))}
+        {SERVICES.length > 8 && (
+          <TouchableOpacity
+            style={styles.serviceItem}
+            onPress={() => router.push("/all-services" as any)}
+          >
+            <View style={[styles.serviceIcon, { backgroundColor: colors.primary + "18" }]}>
+              <Feather name="grid" size={20} color={colors.primary} />
+            </View>
+            <Text style={[styles.serviceLabel, { color: colors.foreground }]}>More</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Recent Transactions */}
@@ -203,6 +211,7 @@ const styles = StyleSheet.create({
   },
   greeting: { fontSize: 13, fontFamily: "Inter_400Regular" },
   name: { fontSize: 22, fontFamily: "Inter_700Bold", marginTop: 2 },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 10 },
   notifBtn: {
     width: 42, height: 42, borderRadius: 12,
     justifyContent: "center", alignItems: "center",
