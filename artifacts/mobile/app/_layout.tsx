@@ -43,6 +43,13 @@ function RootLayoutNav() {
       <Stack.Screen name="support" options={{ headerShown: false }} />
       <Stack.Screen name="terms" options={{ headerShown: false }} />
       <Stack.Screen name="kyc" options={{ headerShown: false }} />
+      <Stack.Screen name="airtime" options={{ headerShown: false }} />
+      <Stack.Screen name="bills" options={{ headerShown: false }} />
+      <Stack.Screen name="scheduled-transfers" options={{ headerShown: false }} />
+      <Stack.Screen name="analytics" options={{ headerShown: false }} />
+      <Stack.Screen name="loans" options={{ headerShown: false }} />
+      <Stack.Screen name="international-transfer" options={{ headerShown: false }} />
+      <Stack.Screen name="referral" options={{ headerShown: false }} />
     </Stack>
   );
 }

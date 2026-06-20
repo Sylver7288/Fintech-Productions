@@ -502,6 +502,203 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardSummary"
 
+  /airtime:
+    post:
+      operationId: buyAirtime
+      tags: [transfers]
+      summary: Buy airtime or data
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AirtimeInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bills:
+    post:
+      operationId: payBill
+      tags: [transfers]
+      summary: Pay a utility bill
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /scheduled-transfers:
+    get:
+      operationId: getScheduledTransfers
+      tags: [transfers]
+      summary: List scheduled transfers
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduledTransfer"
+    post:
+      operationId: createScheduledTransfer
+      tags: [transfers]
+      summary: Create a scheduled transfer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduledTransferInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledTransfer"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /scheduled-transfers/{id}:
+    delete:
+      operationId: cancelScheduledTransfer
+      tags: [transfers]
+      summary: Cancel a scheduled transfer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Cancelled
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /loans:
+    get:
+      operationId: getLoans
+      tags: [savings]
+      summary: List user loans
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Loan"
+    post:
+      operationId: applyLoan
+      tags: [savings]
+      summary: Apply for a loan
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoanInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Loan"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /analytics:
+    get:
+      operationId: getAnalytics
+      tags: [transactions]
+      summary: Get spending analytics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+  /referral:
+    get:
+      operationId: getReferral
+      tags: [profile]
+      summary: Get referral info and code
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralInfo"
+
 components:
   schemas:
     HealthStatus:
@@ -851,3 +1048,182 @@ components:
           type: number
         percentage:
           type: number
+
+    AirtimeInput:
+      type: object
+      required: [fromAccountId, phone, network, purchaseType, amount]
+      properties:
+        fromAccountId:
+          type: string
+        phone:
+          type: string
+        network:
+          type: string
+          enum: [MTN, Airtel, Glo, "9Mobile"]
+        purchaseType:
+          type: string
+          enum: [airtime, data]
+        amount:
+          type: number
+          minimum: 50
+        plan:
+          type: string
+
+    BillInput:
+      type: object
+      required: [fromAccountId, category, provider, reference, amount]
+      properties:
+        fromAccountId:
+          type: string
+        category:
+          type: string
+          enum: [electricity, cable, internet, water]
+        provider:
+          type: string
+        reference:
+          type: string
+        amount:
+          type: number
+          minimum: 100
+
+    ScheduledTransfer:
+      type: object
+      required: [id, fromAccountId, amount, recipientName, recipientBank, recipientAccount, description, frequency, nextRunAt, status, createdAt]
+      properties:
+        id:
+          type: string
+        fromAccountId:
+          type: string
+        amount:
+          type: number
+        recipientName:
+          type: string
+        recipientBank:
+          type: string
+        recipientAccount:
+          type: string
+        description:
+          type: string
+        frequency:
+          type: string
+          enum: [once, weekly, monthly]
+        nextRunAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [active, paused, cancelled]
+        createdAt:
+          type: string
+          format: date-time
+
+    ScheduledTransferInput:
+      type: object
+      required: [fromAccountId, amount, recipientName, recipientBank, recipientAccount, description, frequency, startDate]
+      properties:
+        fromAccountId:
+          type: string
+        amount:
+          type: number
+          minimum: 1
+        recipientName:
+          type: string
+        recipientBank:
+          type: string
+        recipientAccount:
+          type: string
+        description:
+          type: string
+        frequency:
+          type: string
+          enum: [once, weekly, monthly]
+        startDate:
+          type: string
+          format: date-time
+
+    Loan:
+      type: object
+      required: [id, accountId, amount, purpose, status, monthlyRate, durationMonths, repaidAmount, createdAt]
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+        amount:
+          type: number
+        purpose:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected, repaid]
+        monthlyRate:
+          type: number
+        durationMonths:
+          type: integer
+        repaidAmount:
+          type: number
+        approvedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    LoanInput:
+      type: object
+      required: [accountId, amount, purpose, durationMonths]
+      properties:
+        accountId:
+          type: string
+        amount:
+          type: number
+          minimum: 5000
+          maximum: 500000
+        purpose:
+          type: string
+        durationMonths:
+          type: integer
+          enum: [1, 3, 6, 12]
+
+    AnalyticsSummary:
+      type: object
+      required: [period, totalSpend, totalIncome, categories, monthlyTrend]
+      properties:
+        period:
+          type: integer
+        totalSpend:
+          type: number
+        totalIncome:
+          type: number
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySpend"
+        monthlyTrend:
+          type: array
+          items:
+            type: object
+            required: [month, spend, income]
+            properties:
+              month:
+                type: string
+              spend:
+                type: number
+              income:
+                type: number
+
+    ReferralInfo:
+      type: object
+      required: [code, referredCount, totalEarned, pendingBonus, shareUrl]
+      properties:
+        code:
+          type: string
+        referredCount:
+          type: integer
+        totalEarned:
+          type: number
+        pendingBonus:
+          type: number
+        shareUrl:
+          type: string

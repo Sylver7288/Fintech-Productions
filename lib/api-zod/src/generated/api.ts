@@ -457,3 +457,153 @@ export const GetDashboardSummaryResponse = zod.object({
 })
 
 
+/**
+ * @summary Buy airtime or data
+ */
+export const buyAirtimeBodyAmountMin = 50;
+
+
+
+export const BuyAirtimeBody = zod.object({
+  "fromAccountId": zod.string(),
+  "phone": zod.string(),
+  "network": zod.enum(['MTN', 'Airtel', 'Glo', '9Mobile']),
+  "purchaseType": zod.enum(['airtime', 'data']),
+  "amount": zod.number().min(buyAirtimeBodyAmountMin),
+  "plan": zod.string().optional()
+})
+
+
+/**
+ * @summary Pay a utility bill
+ */
+export const payBillBodyAmountMin = 100;
+
+
+
+export const PayBillBody = zod.object({
+  "fromAccountId": zod.string(),
+  "category": zod.enum(['electricity', 'cable', 'internet', 'water']),
+  "provider": zod.string(),
+  "reference": zod.string(),
+  "amount": zod.number().min(payBillBodyAmountMin)
+})
+
+
+/**
+ * @summary List scheduled transfers
+ */
+export const GetScheduledTransfersResponseItem = zod.object({
+  "id": zod.string(),
+  "fromAccountId": zod.string(),
+  "amount": zod.number(),
+  "recipientName": zod.string(),
+  "recipientBank": zod.string(),
+  "recipientAccount": zod.string(),
+  "description": zod.string(),
+  "frequency": zod.enum(['once', 'weekly', 'monthly']),
+  "nextRunAt": zod.coerce.date(),
+  "status": zod.enum(['active', 'paused', 'cancelled']),
+  "createdAt": zod.coerce.date()
+})
+export const GetScheduledTransfersResponse = zod.array(GetScheduledTransfersResponseItem)
+
+
+/**
+ * @summary Create a scheduled transfer
+ */
+
+
+
+export const CreateScheduledTransferBody = zod.object({
+  "fromAccountId": zod.string(),
+  "amount": zod.number().min(1),
+  "recipientName": zod.string(),
+  "recipientBank": zod.string(),
+  "recipientAccount": zod.string(),
+  "description": zod.string(),
+  "frequency": zod.enum(['once', 'weekly', 'monthly']),
+  "startDate": zod.coerce.date()
+})
+
+
+/**
+ * @summary Cancel a scheduled transfer
+ */
+export const CancelScheduledTransferParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+/**
+ * @summary List user loans
+ */
+export const GetLoansResponseItem = zod.object({
+  "id": zod.string(),
+  "accountId": zod.string(),
+  "amount": zod.number(),
+  "purpose": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'repaid']),
+  "monthlyRate": zod.number(),
+  "durationMonths": zod.number(),
+  "repaidAmount": zod.number(),
+  "approvedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const GetLoansResponse = zod.array(GetLoansResponseItem)
+
+
+/**
+ * @summary Apply for a loan
+ */
+export const applyLoanBodyAmountMin = 5000;
+export const applyLoanBodyAmountMax = 500000;
+
+
+
+export const ApplyLoanBody = zod.object({
+  "accountId": zod.string(),
+  "amount": zod.number().min(applyLoanBodyAmountMin).max(applyLoanBodyAmountMax),
+  "purpose": zod.string(),
+  "durationMonths": zod.union([zod.literal(1),zod.literal(3),zod.literal(6),zod.literal(12)])
+})
+
+
+/**
+ * @summary Get spending analytics
+ */
+export const getAnalyticsQueryDaysDefault = 30;
+
+export const GetAnalyticsQueryParams = zod.object({
+  "days": zod.coerce.number().default(getAnalyticsQueryDaysDefault)
+})
+
+export const GetAnalyticsResponse = zod.object({
+  "period": zod.number(),
+  "totalSpend": zod.number(),
+  "totalIncome": zod.number(),
+  "categories": zod.array(zod.object({
+  "category": zod.string(),
+  "amount": zod.number(),
+  "percentage": zod.number()
+})),
+  "monthlyTrend": zod.array(zod.object({
+  "month": zod.string(),
+  "spend": zod.number(),
+  "income": zod.number()
+}))
+})
+
+
+/**
+ * @summary Get referral info and code
+ */
+export const GetReferralResponse = zod.object({
+  "code": zod.string(),
+  "referredCount": zod.number(),
+  "totalEarned": zod.number(),
+  "pendingBonus": zod.number(),
+  "shareUrl": zod.string()
+})
+
+

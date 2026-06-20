@@ -16,6 +16,16 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
+const SERVICES = [
+  { icon: "phone", label: "Airtime & Data", route: "/airtime", color: "#00B894" },
+  { icon: "zap", label: "Pay Bills", route: "/bills", color: "#FDCB6E" },
+  { icon: "repeat", label: "Scheduled", route: "/scheduled-transfers", color: "#6C5CE7" },
+  { icon: "bar-chart-2", label: "Analytics", route: "/analytics", color: "#0984E3" },
+  { icon: "credit-card", label: "Credit", route: "/loans", color: "#E17055" },
+  { icon: "globe", label: "FX Transfer", route: "/international-transfer", color: "#2D3436" },
+  { icon: "gift", label: "Refer & Earn", route: "/referral", color: "#E84393" },
+] as const;
+
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -126,6 +136,25 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* More Services */}
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>More services</Text>
+      </View>
+      <View style={[styles.servicesGrid, { backgroundColor: colors.card }]}>
+        {SERVICES.map(s => (
+          <TouchableOpacity
+            key={s.label}
+            style={styles.serviceItem}
+            onPress={() => router.push(s.route as any)}
+          >
+            <View style={[styles.serviceIcon, { backgroundColor: s.color + "18" }]}>
+              <Feather name={s.icon as any} size={20} color={s.color} />
+            </View>
+            <Text style={[styles.serviceLabel, { color: colors.foreground }]}>{s.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* Recent Transactions */}
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent activity</Text>
@@ -221,6 +250,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
   seeAll: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  servicesGrid: {
+    marginHorizontal: 20, borderRadius: 20, padding: 16, marginBottom: 16,
+    flexDirection: "row", flexWrap: "wrap", gap: 4,
+  },
+  serviceItem: {
+    width: "25%", alignItems: "center", paddingVertical: 12, gap: 8,
+  },
+  serviceIcon: { width: 48, height: 48, borderRadius: 14, justifyContent: "center", alignItems: "center" },
+  serviceLabel: { fontSize: 11, fontFamily: "Inter_500Medium", textAlign: "center" },
   transactionList: { marginHorizontal: 20, borderRadius: 20, overflow: "hidden", marginBottom: 16 },
   emptyState: { padding: 32, alignItems: "center", gap: 10 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },

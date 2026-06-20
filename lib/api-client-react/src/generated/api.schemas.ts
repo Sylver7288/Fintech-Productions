@@ -283,6 +283,172 @@ export interface DashboardSummary {
   spendingByCategory?: CategorySpend[];
 }
 
+export type AirtimeInputNetwork = typeof AirtimeInputNetwork[keyof typeof AirtimeInputNetwork];
+
+
+export const AirtimeInputNetwork = {
+  MTN: 'MTN',
+  Airtel: 'Airtel',
+  Glo: 'Glo',
+  '9Mobile': '9Mobile',
+} as const;
+
+export type AirtimeInputPurchaseType = typeof AirtimeInputPurchaseType[keyof typeof AirtimeInputPurchaseType];
+
+
+export const AirtimeInputPurchaseType = {
+  airtime: 'airtime',
+  data: 'data',
+} as const;
+
+export interface AirtimeInput {
+  fromAccountId: string;
+  phone: string;
+  network: AirtimeInputNetwork;
+  purchaseType: AirtimeInputPurchaseType;
+  /** @minimum 50 */
+  amount: number;
+  plan?: string;
+}
+
+export type BillInputCategory = typeof BillInputCategory[keyof typeof BillInputCategory];
+
+
+export const BillInputCategory = {
+  electricity: 'electricity',
+  cable: 'cable',
+  internet: 'internet',
+  water: 'water',
+} as const;
+
+export interface BillInput {
+  fromAccountId: string;
+  category: BillInputCategory;
+  provider: string;
+  reference: string;
+  /** @minimum 100 */
+  amount: number;
+}
+
+export type ScheduledTransferFrequency = typeof ScheduledTransferFrequency[keyof typeof ScheduledTransferFrequency];
+
+
+export const ScheduledTransferFrequency = {
+  once: 'once',
+  weekly: 'weekly',
+  monthly: 'monthly',
+} as const;
+
+export type ScheduledTransferStatus = typeof ScheduledTransferStatus[keyof typeof ScheduledTransferStatus];
+
+
+export const ScheduledTransferStatus = {
+  active: 'active',
+  paused: 'paused',
+  cancelled: 'cancelled',
+} as const;
+
+export interface ScheduledTransfer {
+  id: string;
+  fromAccountId: string;
+  amount: number;
+  recipientName: string;
+  recipientBank: string;
+  recipientAccount: string;
+  description: string;
+  frequency: ScheduledTransferFrequency;
+  nextRunAt: string;
+  status: ScheduledTransferStatus;
+  createdAt: string;
+}
+
+export type ScheduledTransferInputFrequency = typeof ScheduledTransferInputFrequency[keyof typeof ScheduledTransferInputFrequency];
+
+
+export const ScheduledTransferInputFrequency = {
+  once: 'once',
+  weekly: 'weekly',
+  monthly: 'monthly',
+} as const;
+
+export interface ScheduledTransferInput {
+  fromAccountId: string;
+  /** @minimum 1 */
+  amount: number;
+  recipientName: string;
+  recipientBank: string;
+  recipientAccount: string;
+  description: string;
+  frequency: ScheduledTransferInputFrequency;
+  startDate: string;
+}
+
+export type LoanStatus = typeof LoanStatus[keyof typeof LoanStatus];
+
+
+export const LoanStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  repaid: 'repaid',
+} as const;
+
+export interface Loan {
+  id: string;
+  accountId: string;
+  amount: number;
+  purpose: string;
+  status: LoanStatus;
+  monthlyRate: number;
+  durationMonths: number;
+  repaidAmount: number;
+  approvedAt?: string | null;
+  createdAt: string;
+}
+
+export type LoanInputDurationMonths = typeof LoanInputDurationMonths[keyof typeof LoanInputDurationMonths];
+
+
+export const LoanInputDurationMonths = {
+  NUMBER_1: 1,
+  NUMBER_3: 3,
+  NUMBER_6: 6,
+  NUMBER_12: 12,
+} as const;
+
+export interface LoanInput {
+  accountId: string;
+  /**
+     * @minimum 5000
+     * @maximum 500000
+     */
+  amount: number;
+  purpose: string;
+  durationMonths: LoanInputDurationMonths;
+}
+
+export type AnalyticsSummaryMonthlyTrendItem = {
+  month: string;
+  spend: number;
+  income: number;
+};
+
+export interface AnalyticsSummary {
+  period: number;
+  totalSpend: number;
+  totalIncome: number;
+  categories: CategorySpend[];
+  monthlyTrend: AnalyticsSummaryMonthlyTrendItem[];
+}
+
+export interface ReferralInfo {
+  code: string;
+  referredCount: number;
+  totalEarned: number;
+  pendingBonus: number;
+  shareUrl: string;
+}
+
 export type GetTransactionsParams = {
 accountId?: string;
 limit?: number;
@@ -298,4 +464,8 @@ export const GetTransactionsType = {
   debit: 'debit',
   all: 'all',
 } as const;
+
+export type GetAnalyticsParams = {
+days?: number;
+};
 

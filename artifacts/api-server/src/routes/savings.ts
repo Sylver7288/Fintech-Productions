@@ -39,7 +39,7 @@ router.post("/savings", requireAuth, async (req: AuthRequest, res): Promise<void
     emoji: parsed.data.emoji ?? null,
     color: parsed.data.color ?? null,
     status: "active",
-    targetDate: parsed.data.targetDate ?? null,
+    targetDate: parsed.data.targetDate ? String(parsed.data.targetDate) : null,
   }).returning();
   res.status(201).json(formatSavings(goal));
 });
