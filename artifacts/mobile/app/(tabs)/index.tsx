@@ -264,13 +264,13 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
   seeAll: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   servicesGrid: {
-    marginHorizontal: 20, borderRadius: 20, padding: 16, marginBottom: 16,
-    flexDirection: "row", flexWrap: "wrap", gap: 4,
+    marginHorizontal: 20, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 16, marginBottom: 16,
+    flexDirection: "row", flexWrap: "wrap",
   },
   serviceItem: {
     width: "25%", alignItems: "center", paddingVertical: 12, gap: 8,
   },
-  serviceIcon: { width: 48, height: 48, borderRadius: 14, justifyContent: "center", alignItems: "center" },
+  serviceIcon: { width: 54, height: 54, borderRadius: 27, justifyContent: "center", alignItems: "center" },
   serviceLabel: { fontSize: 11, fontFamily: "Inter_500Medium", textAlign: "center" },
   transactionList: { marginHorizontal: 20, borderRadius: 20, overflow: "hidden", marginBottom: 16 },
   emptyState: { padding: 32, alignItems: "center", gap: 10 },

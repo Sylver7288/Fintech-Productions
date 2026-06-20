@@ -62,10 +62,10 @@ const styles = StyleSheet.create({
   navTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
   content: { paddingHorizontal: 20, paddingTop: 8 },
   grid: {
-    borderRadius: 20, padding: 16,
-    flexDirection: "row", flexWrap: "wrap", gap: 4,
+    borderRadius: 20, paddingHorizontal: 8, paddingVertical: 16,
+    flexDirection: "row", flexWrap: "wrap",
   },
   item: { width: "25%", alignItems: "center", paddingVertical: 12, gap: 8 },
-  icon: { width: 52, height: 52, borderRadius: 16, justifyContent: "center", alignItems: "center" },
+  icon: { width: 54, height: 54, borderRadius: 27, justifyContent: "center", alignItems: "center" },
   label: { fontSize: 11, fontFamily: "Inter_500Medium", textAlign: "center" },
 });

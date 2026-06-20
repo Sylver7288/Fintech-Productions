@@ -1,0 +1,1 @@
+- [Mobile UI gotchas](mobile-ui-gotchas.md) — Android tofu icons need icon-font preload in useFonts + full reload; `25%`-width grid items wrap to 3/row if container has `gap`.
