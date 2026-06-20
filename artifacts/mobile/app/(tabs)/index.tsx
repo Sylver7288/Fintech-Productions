@@ -51,14 +51,9 @@ export default function HomeScreen() {
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
   return (
-    <ScrollView
-      style={[styles.root, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-    >
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: topPad + 16 }]}>
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      {/* Sticky Header */}
+      <View style={[styles.header, { backgroundColor: colors.background, paddingTop: topPad + 16 }]}>
         <View>
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{greeting()},</Text>
           <Text style={[styles.name, { color: colors.foreground }]}>{user?.firstName ?? "User"} 👋</Text>
@@ -79,6 +74,12 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      >
       {/* Balance Card */}
       <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
         <View style={styles.balanceDecor1} />
@@ -196,19 +197,27 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  content: { gap: 0 },
+  scroll: { flex: 1 },
+  content: { gap: 0, paddingTop: 4 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
+    zIndex: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   greeting: { fontSize: 13, fontFamily: "Inter_400Regular" },
   name: { fontSize: 22, fontFamily: "Inter_700Bold", marginTop: 2 },
