@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Alert, Platform, Modal, TextInput,
 } from "react-native";
+import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -139,6 +140,24 @@ export default function CardsScreen() {
                     {selectedCard.status === "frozen"
                       ? "Resume card transactions"
                       : "Temporarily block all transactions"}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+              </TouchableOpacity>
+
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+              <TouchableOpacity
+                style={styles.actionRow}
+                onPress={() => router.push("/card-limits" as any)}
+              >
+                <View style={[styles.actionIcon, { backgroundColor: colors.secondary }]}>
+                  <Feather name="sliders" size={20} color={colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.actionTitle, { color: colors.foreground }]}>Card Limits</Text>
+                  <Text style={[styles.actionSub, { color: colors.mutedForeground }]}>
+                    Set daily spend, ATM & online limits
                   </Text>
                 </View>
                 <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
