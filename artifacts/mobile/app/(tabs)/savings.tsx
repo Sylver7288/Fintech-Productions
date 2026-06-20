@@ -9,26 +9,34 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { SavingsCard } from "@/components/SavingsCard";
 import {
-  useGetSavings, useCreateSavings, useDeleteSavings,
-  getGetSavingsQueryKey
+  useGetSavings, useCreateSavings, useDeleteSavings, useTopUpSavings,
+  useGetAccounts, getGetSavingsQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 const EMOJIS = ["🎯", "🏠", "✈️", "💻", "🎓", "💍", "🚗", "🌴", "💪", "🎉"];
 const COLORS = ["#6C5CE7", "#00B894", "#E17055", "#0984E3", "#FDCB6E", "#E84393", "#2D3436"];
 
+type ActiveGoal = { id: string; name: string; emoji: string | null | undefined; color: string | null | undefined; targetAmount: number; currentAmount: number };
+
 export default function SavingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
   const { data: goals, isLoading } = useGetSavings();
+  const { data: accounts } = useGetAccounts();
   const createSavings = useCreateSavings();
   const deleteSavings = useDeleteSavings();
+  const topUpSavings = useTopUpSavings();
 
-  const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [activeGoal, setActiveGoal] = useState<ActiveGoal | null>(null);
+  const [topUpAmount, setTopUpAmount] = useState("");
   const [form, setForm] = useState({ name: "", targetAmount: "", emoji: "🎯", color: "#6C5CE7" });
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
+  const account = accounts?.[0];
 
   async function handleCreate() {
     if (!form.name || !form.targetAmount) {
@@ -46,11 +54,58 @@ export default function SavingsScreen() {
       });
       qc.invalidateQueries({ queryKey: getGetSavingsQueryKey() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setShowModal(false);
+      setShowCreateModal(false);
       setForm({ name: "", targetAmount: "", emoji: "🎯", color: "#6C5CE7" });
     } catch {
       Alert.alert("Error", "Could not create savings goal");
     }
+  }
+
+  async function handleTopUp() {
+    if (!activeGoal || !account) return;
+    const amount = parseFloat(topUpAmount);
+    if (isNaN(amount) || amount <= 0) {
+      Alert.alert("Invalid amount", "Please enter a valid amount.");
+      return;
+    }
+    if (amount > (account.balance ?? 0)) {
+      Alert.alert("Insufficient funds", "You don't have enough balance for this top-up.");
+      return;
+    }
+    try {
+      await topUpSavings.mutateAsync({ id: activeGoal.id, data: { amount, fromAccountId: account.id } });
+      qc.invalidateQueries({ queryKey: getGetSavingsQueryKey() });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setTopUpAmount("");
+      setShowGoalModal(false);
+      Alert.alert("Top-up successful!", `₦${amount.toLocaleString("en-NG")} added to "${activeGoal.name}".`);
+    } catch (err: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert("Failed", err?.data?.error ?? "Could not top up. Please try again.");
+    }
+  }
+
+  function handleDelete() {
+    if (!activeGoal) return;
+    Alert.alert(
+      "Delete goal",
+      `Are you sure you want to delete "${activeGoal.name}"? This cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete", style: "destructive", onPress: async () => {
+            try {
+              await deleteSavings.mutateAsync({ id: activeGoal.id });
+              qc.invalidateQueries({ queryKey: getGetSavingsQueryKey() });
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              setShowGoalModal(false);
+            } catch {
+              Alert.alert("Error", "Could not delete goal.");
+            }
+          }
+        }
+      ]
+    );
   }
 
   const totalSaved = (goals ?? []).reduce((s, g) => s + g.currentAmount, 0);
@@ -73,7 +128,7 @@ export default function SavingsScreen() {
           </View>
           <TouchableOpacity
             style={[styles.addBtn, { backgroundColor: colors.primary }]}
-            onPress={() => setShowModal(true)}
+            onPress={() => setShowCreateModal(true)}
           >
             <Feather name="plus" size={22} color="#fff" />
           </TouchableOpacity>
@@ -88,20 +143,110 @@ export default function SavingsScreen() {
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Set a goal to start saving towards something meaningful</Text>
             <TouchableOpacity
               style={[styles.emptyBtn, { backgroundColor: colors.primary }]}
-              onPress={() => setShowModal(true)}
+              onPress={() => setShowCreateModal(true)}
             >
               <Text style={styles.emptyBtnText}>Create goal</Text>
             </TouchableOpacity>
           </View>
         ) : (
           goals.map(goal => (
-            <SavingsCard key={goal.id} goal={goal as any} />
+            <SavingsCard
+              key={goal.id}
+              goal={goal as any}
+              onPress={() => {
+                setActiveGoal({ id: goal.id, name: goal.name, emoji: goal.emoji, color: goal.color, targetAmount: goal.targetAmount, currentAmount: goal.currentAmount });
+                setTopUpAmount("");
+                setShowGoalModal(true);
+              }}
+            />
           ))
         )}
       </ScrollView>
 
+      {/* Goal Actions Modal (top-up + delete) */}
+      <Modal visible={showGoalModal} transparent animationType="slide">
+        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
+          <View style={[styles.modalSheet, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHandle} />
+            <View style={styles.goalHeader}>
+              <View style={[styles.goalEmoji, { backgroundColor: `${activeGoal?.color ?? colors.primary}20` }]}>
+                <Text style={{ fontSize: 22 }}>{activeGoal?.emoji ?? "🎯"}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.modalTitle, { color: colors.foreground }]}>{activeGoal?.name}</Text>
+                <Text style={[styles.goalProgress, { color: colors.mutedForeground }]}>
+                  ₦{activeGoal?.currentAmount.toLocaleString("en-NG") ?? 0} of ₦{activeGoal?.targetAmount.toLocaleString("en-NG") ?? 0}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Top-up amount (₦)</Text>
+            <View style={[styles.amountRow, { borderColor: colors.border, backgroundColor: colors.background }]}>
+              <Text style={[styles.nairaSign, { color: colors.foreground }]}>₦</Text>
+              <TextInput
+                style={[styles.amountInput, { color: colors.foreground }]}
+                placeholder="0.00"
+                placeholderTextColor={colors.mutedForeground}
+                value={topUpAmount}
+                onChangeText={setTopUpAmount}
+                keyboardType="decimal-pad"
+              />
+            </View>
+            {account && (
+              <Text style={[styles.balanceNote, { color: colors.mutedForeground }]}>
+                Available balance: ₦{account.balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+              </Text>
+            )}
+
+            <View style={styles.quickAmounts}>
+              {[1000, 5000, 10000, 20000].map(a => (
+                <TouchableOpacity
+                  key={a}
+                  style={[styles.quickAmt, { backgroundColor: colors.secondary, borderColor: colors.border }]}
+                  onPress={() => setTopUpAmount(String(a))}
+                >
+                  <Text style={[styles.quickAmtText, { color: colors.foreground }]}>
+                    ₦{a.toLocaleString("en-NG")}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.topUpBtn, { backgroundColor: colors.primary, opacity: topUpSavings.isPending ? 0.7 : 1 }]}
+              onPress={handleTopUp}
+              disabled={topUpSavings.isPending || !topUpAmount}
+            >
+              {topUpSavings.isPending
+                ? <ActivityIndicator color="#fff" size="small" />
+                : <>
+                  <Feather name="arrow-up" size={16} color="#fff" />
+                  <Text style={styles.topUpBtnText}>Add to savings</Text>
+                </>
+              }
+            </TouchableOpacity>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.cancelBtn, { borderColor: colors.border }]}
+                onPress={() => setShowGoalModal(false)}
+              >
+                <Text style={[styles.cancelText, { color: colors.foreground }]}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.deleteBtn, { borderColor: "#FECACA" }]}
+                onPress={handleDelete}
+              >
+                <Feather name="trash-2" size={14} color={colors.destructive} />
+                <Text style={[styles.deleteText, { color: colors.destructive }]}>Delete goal</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Create Modal */}
-      <Modal visible={showModal} transparent animationType="slide">
+      <Modal visible={showCreateModal} transparent animationType="slide">
         <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
           <View style={[styles.modalSheet, { backgroundColor: colors.card }]}>
             <View style={styles.modalHandle} />
@@ -160,7 +305,7 @@ export default function SavingsScreen() {
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.cancelBtn, { borderColor: colors.border }]}
-                onPress={() => setShowModal(false)}
+                onPress={() => setShowCreateModal(false)}
               >
                 <Text style={[styles.cancelText, { color: colors.foreground }]}>Cancel</Text>
               </TouchableOpacity>
@@ -190,10 +335,28 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", paddingHorizontal: 32 },
   emptyBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, marginTop: 8 },
   emptyBtnText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  goalHeader: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
+  goalEmoji: { width: 48, height: 48, borderRadius: 14, justifyContent: "center", alignItems: "center" },
+  goalProgress: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 2 },
+  amountRow: {
+    flexDirection: "row", alignItems: "center",
+    borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, height: 52, marginBottom: 8,
+  },
+  nairaSign: { fontSize: 20, fontFamily: "Inter_600SemiBold", marginRight: 4 },
+  amountInput: { fontSize: 24, fontFamily: "Inter_700Bold", flex: 1 },
+  balanceNote: { fontSize: 12, fontFamily: "Inter_400Regular", marginBottom: 16 },
+  quickAmounts: { flexDirection: "row", gap: 8, marginBottom: 20, flexWrap: "wrap" },
+  quickAmt: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1 },
+  quickAmtText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  topUpBtn: {
+    borderRadius: 14, height: 52, flexDirection: "row",
+    justifyContent: "center", alignItems: "center", gap: 8, marginBottom: 12,
+  },
+  topUpBtnText: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },
   modalOverlay: { flex: 1, justifyContent: "flex-end" },
   modalSheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
   modalHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold", marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold", marginBottom: 4 },
   modalLabel: { fontSize: 13, fontFamily: "Inter_500Medium", marginBottom: 8 },
   modalInput: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, height: 48, fontSize: 15, fontFamily: "Inter_400Regular", marginBottom: 16 },
   emojiBtn: { width: 44, height: 44, borderRadius: 12, borderWidth: 1.5, borderColor: "transparent", justifyContent: "center", alignItems: "center", marginRight: 8 },
@@ -206,4 +369,6 @@ const styles = StyleSheet.create({
   cancelText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   createBtn: { flex: 1, borderRadius: 12, height: 50, justifyContent: "center", alignItems: "center" },
   createText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  deleteBtn: { flex: 1, borderWidth: 1, borderRadius: 12, height: 50, justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 6 },
+  deleteText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
 });
