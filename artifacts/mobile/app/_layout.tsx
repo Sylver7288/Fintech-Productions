@@ -24,7 +24,9 @@ import { FeatureFlagsProvider } from "@/context/FeatureFlagsContext";
 
 // Set API base URL for all requests
 let apiBaseUrl = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
-if (!process.env.EXPO_PUBLIC_DOMAIN || process.env.EXPO_PUBLIC_DOMAIN.includes("localhost")) {
+if (process.env.EXPO_PUBLIC_DOMAIN?.startsWith("http://") || process.env.EXPO_PUBLIC_DOMAIN?.startsWith("https://")) {
+  apiBaseUrl = process.env.EXPO_PUBLIC_DOMAIN;
+} else if (!process.env.EXPO_PUBLIC_DOMAIN || process.env.EXPO_PUBLIC_DOMAIN.includes("localhost")) {
   if (Platform.OS === "web") {
     apiBaseUrl = "http://localhost:8080";
   } else {
