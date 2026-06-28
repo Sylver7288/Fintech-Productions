@@ -8,10 +8,6 @@
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "resizeMode": "contain",
-      "backgroundColor": "#E5A93C"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.novamoni.mobile"
@@ -37,7 +33,13 @@
           ]
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#E5A93C"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
