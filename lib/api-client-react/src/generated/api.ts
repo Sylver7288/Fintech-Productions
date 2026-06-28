@@ -54,6 +54,8 @@ import type {
   ScheduledTransferInput,
   SendOtp200,
   SendOtpInput,
+  SendPhoneOtp200,
+  SendPhoneOtpInput,
   SupportSettings,
   Transaction,
   TransactionList,
@@ -61,7 +63,9 @@ import type {
   TransferStatusResponse,
   UserProfile,
   VerifyOtp200,
-  VerifyOtpInput
+  VerifyOtpInput,
+  VerifyPhoneOtp200,
+  VerifyPhoneOtpInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -436,6 +440,148 @@ export const useVerifyOtp = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getVerifyOtpMutationOptions(options));
+    }
+
+export const getSendPhoneOtpUrl = () => {
+
+
+
+
+  return `/api/auth/send-phone-otp`
+}
+
+/**
+ * @summary Send SMS verification OTP to phone number
+ */
+export const sendPhoneOtp = async (sendPhoneOtpInput: SendPhoneOtpInput, options?: RequestInit): Promise<SendPhoneOtp200> => {
+
+  return customFetch<SendPhoneOtp200>(getSendPhoneOtpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sendPhoneOtpInput,)
+  }
+);}
+
+
+
+
+export const getSendPhoneOtpMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendPhoneOtp>>, TError,{data: BodyType<SendPhoneOtpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendPhoneOtp>>, TError,{data: BodyType<SendPhoneOtpInput>}, TContext> => {
+
+const mutationKey = ['sendPhoneOtp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendPhoneOtp>>, {data: BodyType<SendPhoneOtpInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendPhoneOtp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendPhoneOtpMutationResult = NonNullable<Awaited<ReturnType<typeof sendPhoneOtp>>>
+    export type SendPhoneOtpMutationBody = BodyType<SendPhoneOtpInput>
+    export type SendPhoneOtpMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Send SMS verification OTP to phone number
+ */
+export const useSendPhoneOtp = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendPhoneOtp>>, TError,{data: BodyType<SendPhoneOtpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendPhoneOtp>>,
+        TError,
+        {data: BodyType<SendPhoneOtpInput>},
+        TContext
+      > => {
+      return useMutation(getSendPhoneOtpMutationOptions(options));
+    }
+
+export const getVerifyPhoneOtpUrl = () => {
+
+
+
+
+  return `/api/auth/verify-phone-otp`
+}
+
+/**
+ * @summary Verify SMS verification OTP for phone number
+ */
+export const verifyPhoneOtp = async (verifyPhoneOtpInput: VerifyPhoneOtpInput, options?: RequestInit): Promise<VerifyPhoneOtp200> => {
+
+  return customFetch<VerifyPhoneOtp200>(getVerifyPhoneOtpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyPhoneOtpInput,)
+  }
+);}
+
+
+
+
+export const getVerifyPhoneOtpMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyPhoneOtp>>, TError,{data: BodyType<VerifyPhoneOtpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyPhoneOtp>>, TError,{data: BodyType<VerifyPhoneOtpInput>}, TContext> => {
+
+const mutationKey = ['verifyPhoneOtp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyPhoneOtp>>, {data: BodyType<VerifyPhoneOtpInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyPhoneOtp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyPhoneOtpMutationResult = NonNullable<Awaited<ReturnType<typeof verifyPhoneOtp>>>
+    export type VerifyPhoneOtpMutationBody = BodyType<VerifyPhoneOtpInput>
+    export type VerifyPhoneOtpMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Verify SMS verification OTP for phone number
+ */
+export const useVerifyPhoneOtp = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyPhoneOtp>>, TError,{data: BodyType<VerifyPhoneOtpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyPhoneOtp>>,
+        TError,
+        {data: BodyType<VerifyPhoneOtpInput>},
+        TContext
+      > => {
+      return useMutation(getVerifyPhoneOtpMutationOptions(options));
     }
 
 export const getGetProfileUrl = () => {

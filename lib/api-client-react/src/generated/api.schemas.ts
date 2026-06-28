@@ -38,6 +38,15 @@ export interface VerifyOtpInput {
   code: string;
 }
 
+export interface SendPhoneOtpInput {
+  phone: string;
+}
+
+export interface VerifyPhoneOtpInput {
+  phone: string;
+  code: string;
+}
+
 export type UserProfileKycStatus = typeof UserProfileKycStatus[keyof typeof UserProfileKycStatus];
 
 
@@ -544,6 +553,17 @@ export type SendOtp200 = {
 };
 
 export type VerifyOtp200 = {
+  success: boolean;
+  message: string;
+};
+
+export type SendPhoneOtp200 = {
+  success: boolean;
+  message: string;
+  devCode?: string;
+};
+
+export type VerifyPhoneOtp200 = {
   success: boolean;
   message: string;
 };

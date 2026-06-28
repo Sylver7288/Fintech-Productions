@@ -90,6 +90,34 @@ export const VerifyOtpResponse = zod.object({
 
 
 /**
+ * @summary Send SMS verification OTP to phone number
+ */
+export const SendPhoneOtpBody = zod.object({
+  "phone": zod.string()
+})
+
+export const SendPhoneOtpResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "devCode": zod.string().optional()
+})
+
+
+/**
+ * @summary Verify SMS verification OTP for phone number
+ */
+export const VerifyPhoneOtpBody = zod.object({
+  "phone": zod.string(),
+  "code": zod.string()
+})
+
+export const VerifyPhoneOtpResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Get current user profile
  */
 export const GetProfileResponse = zod.object({

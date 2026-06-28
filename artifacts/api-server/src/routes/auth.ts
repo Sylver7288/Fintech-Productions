@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, accountsTable, cardsTable, transactionsTable, auditLogsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { RegisterBody, LoginBody } from "@workspace/api-zod";
+import { RegisterBody, LoginBody, SendPhoneOtpBody, VerifyPhoneOtpBody } from "@workspace/api-zod";
 import {
   hashPassword, verifyPassword, generateToken,
   generateId, generateAccountNumber, generateReference,
@@ -64,6 +64,12 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     return;
   }
 
+  const [existingPhone] = await db.select().from(usersTable).where(eq(usersTable.phone, phone));
+  if (existingPhone) {
+    res.status(409).json({ error: "Phone number already registered" });
+    return;
+  }
+
   const id = generateId();
   const passwordHash = hashPassword(password);
 
@@ -75,6 +81,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     passwordHash,
     phone,
     kycStatus: "pending",
+    isEmailVerified: true,
   }).returning();
 
   // Create default current account seeded with ₦50,000
@@ -107,12 +114,6 @@ router.post("/auth/register", async (req, res): Promise<void> => {
 
   // Seed demo transactions so the app looks alive
   await seedDemoTransactions(accountId, "NGN");
-
-  // Auto-send verification code on registration
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  otpStore.set(email, { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 });
-  await sendOtpEmail(email, otp);
-  await sendOtpSms(phone, otp);
 
   const token = generateToken(id);
   tokensStore.set(token, id);
@@ -221,6 +222,56 @@ router.post("/auth/verify-otp", async (req, res): Promise<void> => {
   res.json({
     success: true,
     message: "Email verified successfully.",
+  });
+});
+
+// 3. Send Phone OTP
+router.post("/auth/send-phone-otp", async (req, res): Promise<void> => {
+  const parsed = SendPhoneOtpBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const { phone } = parsed.data;
+
+  // Check if phone already exists
+  const [existing] = await db.select().from(usersTable).where(eq(usersTable.phone, phone)).limit(1);
+  if (existing) {
+    res.status(409).json({ error: "Phone number already registered" });
+    return;
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore.set(phone, { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 });
+  await sendOtpSms(phone, otp);
+
+  res.json({
+    success: true,
+    message: "Verification code sent to your phone.",
+    devCode: otp,
+  });
+});
+
+// 4. Verify Phone OTP
+router.post("/auth/verify-phone-otp", async (req, res): Promise<void> => {
+  const parsed = VerifyPhoneOtpBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const { phone, code } = parsed.data;
+
+  const record = otpStore.get(phone);
+  if (!record || record.code !== code || record.expiresAt < Date.now()) {
+    res.status(400).json({ error: "Invalid or expired verification code" });
+    return;
+  }
+
+  otpStore.delete(phone);
+
+  res.json({
+    success: true,
+    message: "Phone number verified successfully.",
   });
 });
 
