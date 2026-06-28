@@ -47,7 +47,7 @@ const queryClient = new QueryClient({
 function NavigationController() {
   const { pinEnabled, pinVerified, hasSeenOnboarding, isLoaded: appLoaded } = useApp();
   const { user, isLoading: authLoading } = useAuth();
-  const segments = useSegments();
+  const segments = useSegments() as string[];
 
   useEffect(() => {
     if (!appLoaded || authLoading) return;
