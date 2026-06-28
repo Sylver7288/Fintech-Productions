@@ -8,6 +8,7 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import {
   useGetAccounts, useCreateTransfer,
   getGetAccountsQueryKey, getGetTransactionsQueryKey,
@@ -15,10 +16,15 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { useAuth } from "@/context/AuthContext";
+
 const BANKS = [
   "Access Bank", "GTBank", "First Bank", "Zenith Bank", "UBA",
-  "Stanbic IBTC", "Fidelity Bank", "FCMB", "Sterling Bank", "Kuda Bank", "NovaPay"
-];
+  "Stanbic IBTC", "Fidelity Bank", "FCMB", "Sterling Bank", "Kuda Bank", "Novamoni",
+  "Wema Bank", "Polaris Bank", "Union Bank", "KeyStone Bank", "Ecobank", 
+  "Heritage Bank", "Unity Bank", "Providus Bank", "Taj Bank", "Jaiz Bank", 
+  "Globus Bank", "OPay", "PalmPay", "Moniepoint", "Carbon", "FairMoney", "VFD Bank"
+].sort();
 
 export default function TransferScreen() {
   const colors = useColors();
@@ -27,6 +33,45 @@ export default function TransferScreen() {
   const { data: accounts } = useGetAccounts();
   const { data: beneficiaries } = useGetBeneficiaries();
   const createTransfer = useCreateTransfer();
+  const { isFeatureEnabled } = useFeatureFlags();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && user.kycStatus !== "verified" && user.kycStatus !== "approved") {
+      Alert.alert(
+        "KYC Verification Required",
+        "Before you can perform transfers or use full app features, you must complete your KYC verification.",
+        [
+          { text: "Go to KYC", onPress: () => router.replace("/kyc") },
+          { text: "Cancel", onPress: () => router.back(), style: "cancel" }
+        ]
+      );
+    }
+  }, [user]);
+
+  const transfersEnabled = isFeatureEnabled("transfers-enabled");
+
+  if (!transfersEnabled) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center", padding: 20 }]}>
+        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.destructive + "12", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
+          <Feather name="lock" size={32} color={colors.destructive} />
+        </View>
+        <Text style={{ fontSize: 20, fontFamily: "Inter_700Bold", color: colors.foreground, marginBottom: 8, textAlign: "center" }}>
+          Transfers Temporarily Offline
+        </Text>
+        <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center", marginBottom: 24, lineHeight: 20 }}>
+          Bank transfers are undergoing a brief maintenance update. Please check back shortly.
+        </Text>
+        <TouchableOpacity
+          style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.primary }}
+          onPress={() => router.back()}
+        >
+          <Text style={{ color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const params = useLocalSearchParams<{
     prefillName?: string;

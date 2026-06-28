@@ -13,7 +13,7 @@ import { useGetReferral } from "@workspace/api-client-react";
 
 const STEPS = [
   { step: "1", title: "Share your code", desc: "Share your unique referral code with friends", icon: "share-2" },
-  { step: "2", title: "They sign up", desc: "Your friend creates a NovaPay account", icon: "user-plus" },
+  { step: "2", title: "They sign up", desc: "Your friend creates a Novamoni account", icon: "user-plus" },
   { step: "3", title: "Both earn ₦500", desc: "You both receive ₦500 after their first transaction", icon: "gift" },
 ];
 
@@ -37,7 +37,7 @@ export default function ReferralScreen() {
     if (!data) return;
     try {
       await Share.share({
-        message: `Join me on NovaPay — Nigeria's smartest banking app! Use my code ${data.code} when you sign up and we both get ₦500. Download here: ${data.shareUrl}`,
+        message: `Join me on Novamoni — Nigeria's smartest banking app! Use my code ${data.code} when you sign up and we both get ₦500. Download here: ${data.shareUrl}`,
         url: data.shareUrl,
       });
     } catch {
@@ -60,7 +60,7 @@ export default function ReferralScreen() {
         <View style={[styles.hero, { backgroundColor: colors.primary }]}>
           <Text style={styles.heroEmoji}>🎁</Text>
           <Text style={styles.heroTitle}>Earn ₦500 per referral</Text>
-          <Text style={styles.heroSub}>Invite friends to NovaPay. When they complete their first transaction, you both receive ₦500 bonus.</Text>
+          <Text style={styles.heroSub}>Invite friends to Novamoni. When they complete their first transaction, you both receive ₦500 bonus.</Text>
         </View>
 
         {/* Stats */}
@@ -128,7 +128,7 @@ export default function ReferralScreen() {
 
         {/* T&C */}
         <Text style={[styles.terms, { color: colors.mutedForeground }]}>
-          * Bonus credited after referred friend completes first bank transfer. Maximum 50 referrals per user. NovaPay reserves the right to modify the referral program at any time.
+          * Bonus credited after referred friend completes first bank transfer. Maximum 50 referrals per user. Novamoni reserves the right to modify the referral program at any time.
         </Text>
       </ScrollView>
     </View>

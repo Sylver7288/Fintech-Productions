@@ -84,7 +84,8 @@ export default function LoginScreen() {
     return (
       <KeyboardAvoidingView
         style={[s.root, { backgroundColor: colors.background }]}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 30}
       >
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
           <View style={s.logoArea}>
@@ -135,74 +136,97 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[s.root, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={[
+        s.root,
+        { backgroundColor: colors.background },
+        Platform.OS === "web" && {
+          backgroundImage: `radial-gradient(circle at 50% 50%, ${colors.secondary} 0%, ${colors.background} 100%)`
+        } as any
+      ]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 30}
     >
       <ScrollView
         contentContainerStyle={s.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        style={Platform.OS === "web" ? { width: "100%" } : undefined}
       >
-        <View style={s.logoArea}>
-          <View style={[s.logoCircle, { backgroundColor: colors.primary }]}>
-            <Text style={s.logoText}>N</Text>
-          </View>
-          <Text style={[s.appName, { color: colors.foreground }]}>NovaPay</Text>
-          <Text style={[s.tagline, { color: colors.mutedForeground }]}>Your money, your rules</Text>
-        </View>
-
-        <View style={s.form}>
-          <Text style={[s.label, { color: colors.mutedForeground }]}>Email address</Text>
-          <View style={[s.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Feather name="mail" size={16} color={colors.mutedForeground} />
-            <TextInput
-              style={[s.input, { color: colors.foreground }]}
-              placeholder="you@example.com"
-              placeholderTextColor={colors.mutedForeground}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              returnKeyType="next"
-            />
+        <View style={[
+          s.cardContainer,
+          Platform.OS === "web" && {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+            borderWidth: 1,
+            padding: 40,
+            borderRadius: 24,
+            shadowColor: "#000",
+            shadowOpacity: 0.06,
+            shadowRadius: 20,
+            shadowOffset: { width: 0, height: 10 }
+          }
+        ]}>
+          <View style={s.logoArea}>
+            <View style={[s.logoCircle, { backgroundColor: colors.primary }]}>
+              <Text style={s.logoText}>N</Text>
+            </View>
+            <Text style={[s.appName, { color: colors.foreground }]}>Novamoni</Text>
+            <Text style={[s.tagline, { color: colors.mutedForeground }]}>Smart microfinance, simple banking</Text>
           </View>
 
-          <Text style={[s.label, { color: colors.mutedForeground }]}>Password</Text>
-          <View style={[s.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Feather name="lock" size={16} color={colors.mutedForeground} />
-            <TextInput
-              style={[s.input, { color: colors.foreground }]}
-              placeholder="••••••••"
-              placeholderTextColor={colors.mutedForeground}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPw}
-              returnKeyType="done"
-              onSubmitEditing={handleLogin}
-            />
-            <TouchableOpacity onPress={() => setShowPw(!showPw)}>
-              <Feather name={showPw ? "eye-off" : "eye"} size={16} color={colors.mutedForeground} />
+          <View style={s.form}>
+            <Text style={[s.label, { color: colors.mutedForeground }]}>Email address</Text>
+            <View style={[s.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Feather name="mail" size={16} color={colors.mutedForeground} />
+              <TextInput
+                style={[s.input, { color: colors.foreground }]}
+                placeholder="you@example.com"
+                placeholderTextColor={colors.mutedForeground}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                returnKeyType="next"
+              />
+            </View>
+
+            <Text style={[s.label, { color: colors.mutedForeground }]}>Password</Text>
+            <View style={[s.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Feather name="lock" size={16} color={colors.mutedForeground} />
+              <TextInput
+                style={[s.input, { color: colors.foreground }]}
+                placeholder="••••••••"
+                placeholderTextColor={colors.mutedForeground}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPw}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
+              />
+              <TouchableOpacity onPress={() => setShowPw(!showPw)}>
+                <Feather name={showPw ? "eye-off" : "eye"} size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[s.btn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={s.btnText}>Sign In</Text>
+              }
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={[s.btn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={s.btnText}>Sign In</Text>
-            }
-          </TouchableOpacity>
-        </View>
-
-        <View style={s.footer}>
-          <Text style={[s.footerText, { color: colors.mutedForeground }]}>Don't have an account?</Text>
-          <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-            <Text style={[s.link, { color: colors.primary }]}> Create account</Text>
-          </TouchableOpacity>
+          <View style={s.footer}>
+            <Text style={[s.footerText, { color: colors.mutedForeground }]}>Don't have an account?</Text>
+            <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
+              <Text style={[s.link, { color: colors.primary }]}> Create account</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -211,30 +235,40 @@ export default function LoginScreen() {
 
 function makeStyles(colors: any, insets: any) {
   return StyleSheet.create({
-    root: { flex: 1 },
+    root: { 
+      flex: 1,
+    },
     scroll: {
       flexGrow: 1,
       paddingHorizontal: 24,
-      paddingTop: insets.top + (Platform.OS === "web" ? 67 : 20),
-      paddingBottom: insets.bottom + 24,
+      paddingTop: insets.top + (Platform.OS === "web" ? 60 : 20),
+      paddingBottom: insets.bottom + 100,
+      justifyContent: Platform.OS === "web" ? "center" : "flex-start",
+      alignItems: "center",
+      width: "100%",
     },
-    logoArea: { alignItems: "center", marginBottom: 48, marginTop: 20 },
+    cardContainer: {
+      width: "100%",
+      maxWidth: 420,
+    },
+    logoArea: { alignItems: "center", marginBottom: 32, marginTop: 10 },
     logoCircle: {
-      width: 72, height: 72, borderRadius: 24,
-      justifyContent: "center", alignItems: "center", marginBottom: 12,
+      width: 80, height: 80, borderRadius: 28,
+      justifyContent: "center", alignItems: "center", marginBottom: 16,
+      shadowColor: colors.primary, shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }
     },
-    logoText: { fontSize: 36, fontFamily: "Inter_700Bold", color: "#fff" },
-    appName: { fontSize: 28, fontFamily: "Inter_700Bold" },
-    tagline: { fontSize: 14, fontFamily: "Inter_400Regular", marginTop: 4, textAlign: "center", lineHeight: 20 },
-    form: { gap: 4 },
-    label: { fontSize: 13, fontFamily: "Inter_500Medium", marginBottom: 6, marginTop: 16 },
+    logoText: { fontSize: 38, fontFamily: "Inter_700Bold", color: "#fff" },
+    appName: { fontSize: 30, fontFamily: "Inter_800ExtraBold", letterSpacing: -0.5 },
+    tagline: { fontSize: 13, fontFamily: "Inter_500Medium", marginTop: 6, textAlign: "center", lineHeight: 18 },
+    form: { gap: 2 },
+    label: { fontSize: 13, fontFamily: "Inter_600SemiBold", marginBottom: 6, marginTop: 16 },
     inputWrap: {
       flexDirection: "row", alignItems: "center",
       borderRadius: 14, borderWidth: 1,
       paddingHorizontal: 14, height: 52, gap: 10,
     },
     input: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
-    btn: { borderRadius: 14, height: 54, justifyContent: "center", alignItems: "center", marginTop: 28 },
+    btn: { borderRadius: 14, height: 54, justifyContent: "center", alignItems: "center", marginTop: 28, shadowColor: colors.primary, shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
     btnText: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },
     footer: { flexDirection: "row", justifyContent: "center", marginTop: 24 },
     footerText: { fontSize: 14, fontFamily: "Inter_400Regular" },

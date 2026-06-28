@@ -1,10 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
-import { useGetAccounts } from "@workspace/api-client-react";
+import { 
+  useGetAccounts, 
+  customFetch, 
+  getGetDashboardSummaryQueryKey, 
+  getGetAccountsQueryKey 
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import QRCode from "react-native-qrcode-svg";
 
@@ -14,15 +20,54 @@ export default function ReceiveScreen() {
   const { data: accounts } = useGetAccounts();
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
   const account = accounts?.[0];
+  const qc = useQueryClient();
+  const [funding, setFunding] = React.useState(false);
+  const [selectedAmount, setSelectedAmount] = React.useState<number>(2000);
 
   function copyToClipboard(text: string) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert("Copied!", `${text} copied to clipboard`);
   }
 
+  function handlePaystackFund() {
+    if (!account) return;
+    triggerDeposit(selectedAmount);
+  }
+
+  async function triggerDeposit(amount: number) {
+    if (!account) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setFunding(true);
+    try {
+      await customFetch(
+        `/api/accounts/${account.id}/deposit`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount })
+        }
+      );
+      
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }),
+        qc.invalidateQueries({ queryKey: getGetAccountsQueryKey() })
+      ]);
+
+      Alert.alert(
+        "Payment Successful",
+        `Successfully deposited ₦${amount.toLocaleString()} into your account via Paystack Card.`
+      );
+    } catch (err: any) {
+      const msg = err?.message || err?.error || "Paystack service is currently unreachable.";
+      Alert.alert("Payment Failed", msg);
+    } finally {
+      setFunding(false);
+    }
+  }
+
   const qrValue = account
-    ? JSON.stringify({ accountNumber: account.accountNumber, bankName: account.bankName ?? "NovaPay" })
-    : "NovaPay";
+    ? JSON.stringify({ accountNumber: account.accountNumber, bankName: account.bankName ?? "Novamoni" })
+    : "Novamoni";
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -64,7 +109,7 @@ export default function ReceiveScreen() {
               <View style={[styles.detailRow, { backgroundColor: colors.background }]}>
                 <View>
                   <Text style={[styles.detailLabel, { color: colors.mutedForeground }]}>Bank name</Text>
-                  <Text style={[styles.detailValue, { color: colors.foreground }]}>{account.bankName ?? "NovaPay"}</Text>
+                  <Text style={[styles.detailValue, { color: colors.foreground }]}>{account.bankName ?? "Novamoni"}</Text>
                 </View>
               </View>
 
@@ -79,6 +124,42 @@ export default function ReceiveScreen() {
             </>
           )}
 
+          <Text style={[styles.scanHint, { color: colors.mutedForeground, marginTop: 4 }]}>
+            Select funding amount:
+          </Text>
+
+          <View style={styles.amountChipsRow}>
+            {[2000, 5000, 10000].map((amt) => {
+              const isSelected = selectedAmount === amt;
+              return (
+                <TouchableOpacity
+                  key={amt}
+                  style={[
+                    styles.amountChip,
+                    {
+                      backgroundColor: isSelected ? colors.primary : colors.background,
+                      borderColor: isSelected ? colors.primary : colors.border,
+                    }
+                  ]}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSelectedAmount(amt);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.amountChipText,
+                      { color: isSelected ? "#fff" : colors.foreground }
+                    ]}
+                  >
+                    ₦{amt.toLocaleString()}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           <TouchableOpacity
             style={[styles.shareBtn, { backgroundColor: colors.primary }]}
             onPress={() => Alert.alert("Share", "Share account details feature coming soon")}
@@ -86,6 +167,22 @@ export default function ReceiveScreen() {
           >
             <Feather name="share-2" size={16} color="#fff" />
             <Text style={styles.shareBtnText}>Share account details</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.fundBtn, { borderColor: colors.primary, borderWidth: 1 }]}
+            onPress={handlePaystackFund}
+            disabled={funding}
+            activeOpacity={0.8}
+          >
+            {funding ? (
+              <ActivityIndicator color={colors.primary} size="small" />
+            ) : (
+              <>
+                <Feather name="credit-card" size={16} color={colors.primary} />
+                <Text style={[styles.fundBtnText, { color: colors.primary }]}>Fund Account via Paystack</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -118,4 +215,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   shareBtnText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  fundBtn: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12, width: "100%",
+    justifyContent: "center", marginTop: 8
+  },
+  fundBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  amountChipsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: 8,
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  amountChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  amountChipText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, ActivityIndicator, Alert, Platform
@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import { usePayBill, useGetAccounts, getGetAccountsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -15,7 +16,7 @@ type BillCategory = "electricity" | "cable" | "internet" | "water";
 
 const CATEGORIES: { id: BillCategory; label: string; icon: string; color: string }[] = [
   { id: "electricity", label: "Electricity", icon: "zap", color: "#FDCB6E" },
-  { id: "cable", label: "Cable TV", icon: "tv", color: "#6C5CE7" },
+  { id: "cable", label: "Cable TV", icon: "tv", color: "#E5A93C" },
   { id: "internet", label: "Internet", icon: "wifi", color: "#0984E3" },
   { id: "water", label: "Water", icon: "droplet", color: "#00B894" },
 ];
@@ -51,12 +52,53 @@ const AMOUNTS: Record<BillCategory, number[]> = {
   water: [500, 1000, 2000, 5000],
 };
 
+import { useAuth } from "@/context/AuthContext";
+
 export default function BillsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
   const { data: accounts } = useGetAccounts();
   const payBill = usePayBill();
+  const { isFeatureEnabled } = useFeatureFlags();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && user.kycStatus !== "verified" && user.kycStatus !== "approved") {
+      Alert.alert(
+        "KYC Verification Required",
+        "Before you can pay bills, you must complete your KYC verification.",
+        [
+          { text: "Go to KYC", onPress: () => router.replace("/kyc") },
+          { text: "Cancel", onPress: () => router.back(), style: "cancel" }
+        ]
+      );
+    }
+  }, [user]);
+
+  const airtimeBillsEnabled = isFeatureEnabled("airtime-bills-enabled");
+
+  if (!airtimeBillsEnabled) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center", padding: 20 }]}>
+        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.destructive + "12", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
+          <Feather name="lock" size={32} color={colors.destructive} />
+        </View>
+        <Text style={{ fontSize: 20, fontFamily: "Inter_700Bold", color: colors.foreground, marginBottom: 8, textAlign: "center" }}>
+          Utility Payments Offline
+        </Text>
+        <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center", marginBottom: 24, lineHeight: 20 }}>
+          Utility and bill payments are undergoing a brief maintenance update. Please check back shortly.
+        </Text>
+        <TouchableOpacity
+          style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.primary }}
+          onPress={() => router.back()}
+        >
+          <Text style={{ color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const [category, setCategory] = useState<BillCategory>("electricity");
   const [provider, setProvider] = useState(PROVIDERS.electricity[0]!.name);

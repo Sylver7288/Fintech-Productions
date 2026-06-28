@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import {
   useGetScheduledTransfers, useCreateScheduledTransfer, useCancelScheduledTransfer,
   useGetAccounts, getGetScheduledTransfersQueryKey
@@ -23,7 +24,7 @@ const FREQUENCIES = [
 const NIGERIAN_BANKS = [
   "Access Bank", "GTBank", "First Bank", "Zenith Bank", "UBA", "Stanbic IBTC",
   "Fidelity Bank", "FCMB", "Union Bank", "Sterling Bank", "Wema Bank", "Polaris Bank",
-  "NovaPay",
+  "Novamoni",
 ];
 
 export default function ScheduledTransfersScreen() {
@@ -34,6 +35,31 @@ export default function ScheduledTransfersScreen() {
   const { data: accounts } = useGetAccounts();
   const createSchedule = useCreateScheduledTransfer();
   const cancelSchedule = useCancelScheduledTransfer();
+  const { isFeatureEnabled } = useFeatureFlags();
+
+  const transfersEnabled = isFeatureEnabled("transfers-enabled");
+
+  if (!transfersEnabled) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center", padding: 20 }]}>
+        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.destructive + "12", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
+          <Feather name="lock" size={32} color={colors.destructive} />
+        </View>
+        <Text style={{ fontSize: 20, fontFamily: "Inter_700Bold", color: colors.foreground, marginBottom: 8, textAlign: "center" }}>
+          Scheduled Transfers Offline
+        </Text>
+        <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center", marginBottom: 24, lineHeight: 20 }}>
+          Scheduled transfers are undergoing a brief maintenance update. Please check back shortly.
+        </Text>
+        <TouchableOpacity
+          style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.primary }}
+          onPress={() => router.back()}
+        >
+          <Text style={{ color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({

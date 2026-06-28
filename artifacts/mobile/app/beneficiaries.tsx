@@ -16,7 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const BANKS = [
   "Access Bank","GTBank","First Bank","Zenith Bank","UBA",
-  "Stanbic IBTC","Fidelity Bank","FCMB","Sterling Bank","Kuda Bank","NovaPay",
+  "Stanbic IBTC","Fidelity Bank","FCMB","Sterling Bank","Kuda Bank","Novamoni",
 ];
 
 export default function BeneficiariesScreen() {

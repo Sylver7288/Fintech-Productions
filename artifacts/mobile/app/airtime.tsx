@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, ActivityIndicator, Alert, Platform
@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import { useBuyAirtime, useGetAccounts, getGetAccountsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -49,12 +50,53 @@ const DATA_PLANS: Record<string, { label: string; amount: number }[]> = {
 
 const AIRTIME_PRESETS = [100, 200, 500, 1000, 2000, 5000];
 
+import { useAuth } from "@/context/AuthContext";
+
 export default function AirtimeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
   const { data: accounts } = useGetAccounts();
   const buyAirtime = useBuyAirtime();
+  const { isFeatureEnabled } = useFeatureFlags();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && user.kycStatus !== "verified" && user.kycStatus !== "approved") {
+      Alert.alert(
+        "KYC Verification Required",
+        "Before you can buy airtime or data, you must complete your KYC verification.",
+        [
+          { text: "Go to KYC", onPress: () => router.replace("/kyc") },
+          { text: "Cancel", onPress: () => router.back(), style: "cancel" }
+        ]
+      );
+    }
+  }, [user]);
+
+  const airtimeBillsEnabled = isFeatureEnabled("airtime-bills-enabled");
+
+  if (!airtimeBillsEnabled) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center", padding: 20 }]}>
+        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.destructive + "12", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
+          <Feather name="lock" size={32} color={colors.destructive} />
+        </View>
+        <Text style={{ fontSize: 20, fontFamily: "Inter_700Bold", color: colors.foreground, marginBottom: 8, textAlign: "center" }}>
+          Airtime & Data Offline
+        </Text>
+        <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center", marginBottom: 24, lineHeight: 20 }}>
+          Airtime purchases and mobile data top-ups are undergoing a brief maintenance update. Please check back shortly.
+        </Text>
+        <TouchableOpacity
+          style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.primary }}
+          onPress={() => router.back()}
+        >
+          <Text style={{ color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const [tab, setTab] = useState<"airtime" | "data">("airtime");
   const [network, setNetwork] = useState("MTN");

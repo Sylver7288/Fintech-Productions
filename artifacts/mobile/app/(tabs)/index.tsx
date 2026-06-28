@@ -1,19 +1,17 @@
 import React from "react";
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  RefreshControl, Platform, ActivityIndicator
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Platform, ActivityIndicator, Alert } from "react-native";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import { TransactionItem } from "@/components/TransactionItem";
 import { QuickAction } from "@/components/QuickAction";
 import { SERVICES } from "@/constants/services";
 import {
-  useGetDashboardSummary, useGetAccounts,
-  getGetDashboardSummaryQueryKey, getGetAccountsQueryKey
+  useGetDashboardSummary, useGetAccounts, useGetBanners,
+  getGetDashboardSummaryQueryKey, getGetAccountsQueryKey, getGetBannersQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -24,10 +22,53 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { isFeatureEnabled } = useFeatureFlags();
 
   const { data: summary, isLoading: summaryLoading } = useGetDashboardSummary();
   const { data: accounts, isLoading: accountsLoading } = useGetAccounts();
+  const { data: banners } = useGetBanners();
   const [refreshing, setRefreshing] = React.useState(false);
+
+  const getFlagForKey = (route: string): string | undefined => {
+    if (route.startsWith("/transfer") || route.startsWith("/international-transfer") || route.startsWith("/scheduled-transfers") || route.startsWith("/split-bill")) {
+      return "transfers-enabled";
+    }
+    if (route.startsWith("/loans")) {
+      return "loans-enabled";
+    }
+    if (route.startsWith("/airtime") || route.startsWith("/bills")) {
+      return "airtime-bills-enabled";
+    }
+    return undefined;
+  };
+
+  const handlePress = (route: string) => {
+    // Check KYC status for restricted services
+    const restrictedRoutes = ["/transfer", "/airtime", "/bills", "/loans", "/cards", "/(tabs)/cards"];
+    const isRestricted = restrictedRoutes.some(r => route.startsWith(r));
+
+    if (isRestricted && user && user.kycStatus !== "verified" && user.kycStatus !== "approved") {
+      Alert.alert(
+        "KYC Verification Required",
+        "Before you can access this service, you must complete your KYC verification.",
+        [
+          { text: "Go to KYC", onPress: () => router.push("/kyc" as any) },
+          { text: "Cancel", style: "cancel" }
+        ]
+      );
+      return;
+    }
+
+    const flag = getFlagForKey(route);
+    if (flag && !isFeatureEnabled(flag)) {
+      Alert.alert(
+        "Service Offline",
+        "This feature is temporarily unavailable due to system upgrades. Please check back later."
+      );
+      return;
+    }
+    router.push(route as any);
+  };
 
   const [balanceVisible, setBalanceVisible] = React.useState(true);
 
@@ -36,6 +77,7 @@ export default function HomeScreen() {
     await Promise.all([
       qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }),
       qc.invalidateQueries({ queryKey: getGetAccountsQueryKey() }),
+      qc.invalidateQueries({ queryKey: getGetBannersQueryKey() }),
     ]);
     setRefreshing(false);
   }
@@ -55,8 +97,8 @@ export default function HomeScreen() {
       {/* Sticky Header */}
       <View style={[styles.header, { backgroundColor: colors.background, paddingTop: topPad + 16 }]}>
         <View>
-          <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{greeting()},</Text>
-          <Text style={[styles.name, { color: colors.foreground }]}>{user?.firstName ?? "User"} 👋</Text>
+          <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Welcome back,</Text>
+          <Text style={[styles.name, { color: colors.foreground }]}>{user?.firstName || (user as any)?.first_name || "User"} 👋</Text>
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
@@ -81,15 +123,14 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
       {/* Balance Card */}
-      <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+      <View style={[styles.balanceCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
         <View style={styles.balanceDecor1} />
-        <View style={styles.balanceDecor2} />
         <View style={styles.balanceTop}>
           <View>
             <Text style={styles.balanceLabel}>Total Balance</Text>
             {summaryLoading
-              ? <ActivityIndicator color="#fff" style={{ marginTop: 8 }} />
-              : <Text style={styles.balanceAmount}>
+              ? <ActivityIndicator color={colors.primary} style={{ marginTop: 8 }} />
+              : <Text style={[styles.balanceAmount, { color: colors.primary }]}>
                 {balanceVisible
                   ? `₦${(summary?.totalBalance ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
                   : "₦ ••••••"
@@ -106,13 +147,13 @@ export default function HomeScreen() {
         {mainAccount && (
           <View style={styles.accountChip}>
             <Text style={styles.accountNum}>{mainAccount.accountNumber}</Text>
-            <Text style={styles.accountBank}>{mainAccount.bankName ?? "NovaPay"}</Text>
+            <Text style={styles.accountBank}>{mainAccount.bankName ?? "Novamoni"}</Text>
           </View>
         )}
 
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Feather name="arrow-down-circle" size={14} color="rgba(255,255,255,0.8)" />
+            <Feather name="arrow-down" size={14} color="rgba(255,255,255,0.8)" />
             <View style={{ marginLeft: 6 }}>
               <Text style={styles.statLabel}>Income</Text>
               <Text style={styles.statVal}>₦{(summary?.monthlyIncome ?? 0).toLocaleString("en-NG")}</Text>
@@ -120,7 +161,7 @@ export default function HomeScreen() {
           </View>
           <View style={[styles.statDivider]} />
           <View style={styles.statItem}>
-            <Feather name="arrow-up-circle" size={14} color="rgba(255,255,255,0.8)" />
+            <Feather name="arrow-up" size={14} color="rgba(255,255,255,0.8)" />
             <View style={{ marginLeft: 6 }}>
               <Text style={styles.statLabel}>Spending</Text>
               <Text style={styles.statVal}>₦{(summary?.monthlySpend ?? 0).toLocaleString("en-NG")}</Text>
@@ -129,13 +170,59 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* Banners Carousel */}
+      {banners && banners.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.bannerCarousel}
+          contentContainerStyle={styles.bannerCarouselContent}
+        >
+          {banners.map((banner) => (
+            <TouchableOpacity
+              key={banner.id}
+              style={[styles.bannerCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+              activeOpacity={0.9}
+              onPress={() => {
+                if (banner.linkUrl) {
+                  if (banner.linkUrl.startsWith("novamoni://") || banner.linkUrl.startsWith("novapay://") || banner.linkUrl.startsWith("/")) {
+                    const path = banner.linkUrl.replace("novamoni://", "/").replace("novapay://", "/");
+                    handlePress(path);
+                  } else {
+                    Alert.alert(banner.title, banner.description || "Learn more about this offer!");
+                  }
+                } else {
+                  Alert.alert(banner.title, banner.description || "Learn more about this offer!");
+                }
+              }}
+            >
+              <View style={styles.bannerTextContainer}>
+                <Text style={[styles.bannerTitle, { color: colors.foreground }]} numberOfLines={1}>
+                  {banner.title}
+                </Text>
+                {banner.description && (
+                  <Text style={[styles.bannerDesc, { color: colors.mutedForeground }]} numberOfLines={2}>
+                    {banner.description}
+                  </Text>
+                )}
+              </View>
+              <View style={styles.bannerImageContainer}>
+                <View style={[styles.bannerIconBadge, { backgroundColor: colors.primary + "18" }]}>
+                  <Feather name="gift" size={22} color={colors.primary} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
       {/* Quick Actions */}
       <View style={[styles.section, { backgroundColor: colors.card }]}>
         <View style={styles.quickActions}>
-          <QuickAction icon="send" label="Send" onPress={() => router.push("/transfer")} />
-          <QuickAction icon="download" label="Receive" onPress={() => router.push("/receive")} />
-          <QuickAction icon="credit-card" label="Cards" onPress={() => router.push("/(tabs)/cards")} />
-          <QuickAction icon="target" label="Save" onPress={() => router.push("/(tabs)/savings")} />
+          <QuickAction icon="send" label="Send" onPress={() => handlePress("/transfer")} />
+          <QuickAction icon="download" label="Receive" onPress={() => handlePress("/receive")} />
+          <QuickAction icon="credit-card" label="Cards" onPress={() => handlePress("/(tabs)/cards")} />
+          <QuickAction icon="target" label="Save" onPress={() => handlePress("/(tabs)/savings")} />
         </View>
       </View>
 
@@ -148,7 +235,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             key={s.label}
             style={styles.serviceItem}
-            onPress={() => router.push(s.route as any)}
+            onPress={() => handlePress(s.route)}
           >
             <View style={[styles.serviceIcon, { backgroundColor: s.color + "18" }]}>
               <Feather name={s.icon as any} size={20} color={s.color} />
@@ -290,4 +377,46 @@ const styles = StyleSheet.create({
   transactionList: { marginHorizontal: 20, borderRadius: 20, overflow: "hidden", marginBottom: 16 },
   emptyState: { padding: 32, alignItems: "center", gap: 10 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  bannerCarousel: {
+    marginBottom: 16,
+  },
+  bannerCarouselContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  bannerCard: {
+    width: 290,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    minHeight: 84,
+  },
+  bannerTextContainer: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  bannerTitle: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+  },
+  bannerDesc: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    marginTop: 3,
+    lineHeight: 14,
+  },
+  bannerImageContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bannerIconBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

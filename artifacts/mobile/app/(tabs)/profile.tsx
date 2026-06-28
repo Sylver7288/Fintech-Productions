@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
 import { router } from "expo-router";
+import { useApp } from "@/context/AppContext";
 
 interface MenuItemProps {
   icon: string;
@@ -41,7 +42,21 @@ export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useApp();
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
+
+  function handleThemePress() {
+    Alert.alert(
+      "Select Theme",
+      "Choose your preferred appearance style for the application.",
+      [
+        { text: "Light Mode", onPress: () => setTheme("light") },
+        { text: "Dark Mode", onPress: () => setTheme("dark") },
+        { text: "System Default", onPress: () => setTheme("system") },
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
+  }
 
   function handleLogout() {
     Alert.alert("Sign out", "Are you sure you want to sign out?", [
@@ -50,7 +65,9 @@ export default function ProfileScreen() {
     ]);
   }
 
-  const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase();
+  const firstName = user?.firstName || (user as any)?.first_name || "User";
+  const lastName = user?.lastName || (user as any)?.last_name || "";
+  const initials = `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
 
   return (
     <ScrollView
@@ -72,17 +89,17 @@ export default function ProfileScreen() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.userName, { color: colors.foreground }]}>
-            {user?.firstName} {user?.lastName}
+            {firstName} {lastName}
           </Text>
           <Text style={[styles.userEmail, { color: colors.mutedForeground }]}>{user?.email}</Text>
           <TouchableOpacity
-            style={[styles.kycBadge, { backgroundColor: user?.kycStatus === "verified" ? "#E6F8F3" : "#FFF8E6" }]}
+            style={[styles.kycBadge, { backgroundColor: (user?.kycStatus === "verified" || user?.kycStatus === "approved") ? "#E6F8F3" : "#FFF8E6" }]}
             onPress={() => router.push("/kyc")}
             activeOpacity={0.7}
           >
-            <View style={[styles.kycDot, { backgroundColor: user?.kycStatus === "verified" ? colors.success : colors.warning }]} />
-            <Text style={[styles.kycText, { color: user?.kycStatus === "verified" ? colors.success : colors.warning }]}>
-              {user?.kycStatus === "verified" ? "Verified" : "Verification pending — tap to verify"}
+            <View style={[styles.kycDot, { backgroundColor: (user?.kycStatus === "verified" || user?.kycStatus === "approved") ? colors.success : colors.warning }]} />
+            <Text style={[styles.kycText, { color: (user?.kycStatus === "verified" || user?.kycStatus === "approved") ? colors.success : colors.warning }]}>
+              {(user?.kycStatus === "verified" || user?.kycStatus === "approved") ? "Verified" : "Verification pending — tap to verify"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -93,6 +110,12 @@ export default function ProfileScreen() {
         <MenuItem icon="user" label="Personal Information" sub={user?.phone} onPress={() => router.push("/personal-info")} />
         <MenuItem icon="shield" label="Security" sub="PIN, biometrics" onPress={() => router.push("/security")} />
         <MenuItem icon="bell" label="Notifications" onPress={() => router.push("/notifications")} />
+        <MenuItem 
+          icon={theme === "dark" ? "moon" : theme === "light" ? "sun" : "monitor"} 
+          label="Theme" 
+          sub={theme === "dark" ? "Dark Mode" : theme === "light" ? "Light Mode" : "System Default"} 
+          onPress={handleThemePress} 
+        />
       </View>
 
       <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Support</Text>

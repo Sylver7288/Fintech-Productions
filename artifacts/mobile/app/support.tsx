@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Platform, Alert, TextInput, ActivityIndicator,
+  Platform, Alert, TextInput, ActivityIndicator, Linking,
 } from "react-native";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useGetSupportSettings } from "@workspace/api-client-react";
 
 const FAQS = [
   {
@@ -23,7 +24,7 @@ const FAQS = [
   },
   {
     q: "How long does a transfer take?",
-    a: "NovaPay transfers are instant for NovaPay accounts. Inter-bank transfers typically complete within a few minutes.",
+    a: "Novamoni transfers are instant for Novamoni accounts. Inter-bank transfers typically complete within a few minutes.",
   },
   {
     q: "What is my transaction limit?",
@@ -42,6 +43,64 @@ export default function SupportScreen() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+
+  const { data: supportSettings } = useGetSupportSettings();
+
+  const supportEmail = supportSettings?.email || "support@novamoni.ng";
+  const supportWhatsapp = supportSettings?.whatsapp || "https://wa.me/2348000000000";
+  const supportLiveChat = supportSettings?.liveChatUrl || "https://tawk.to/novamoni";
+
+  const handleEmailPress = async () => {
+    try {
+      const url = `mailto:${supportEmail}`;
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Email Support", `Please send an email to ${supportEmail}`);
+      }
+    } catch (error) {
+      Alert.alert("Email Support", `Please send an email to ${supportEmail}`);
+    }
+  };
+
+  const handleWhatsappPress = async () => {
+    try {
+      const supported = await Linking.canOpenURL(supportWhatsapp);
+      if (supported) {
+        await Linking.openURL(supportWhatsapp);
+      } else {
+        Alert.alert("WhatsApp Support", `Please contact us at ${supportWhatsapp}`);
+      }
+    } catch (error) {
+      Alert.alert("WhatsApp Support", `Please contact us at ${supportWhatsapp}`);
+    }
+  };
+
+  const handleLiveChatPress = () => {
+    Alert.alert(
+      "Live Chat Support",
+      "We are redirecting you to our secure third-party live chat room. Do you want to continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Continue",
+          onPress: async () => {
+            try {
+              const supported = await Linking.canOpenURL(supportLiveChat);
+              if (supported) {
+                await Linking.openURL(supportLiveChat);
+              } else {
+                Alert.alert("Live Chat Support", `Please visit ${supportLiveChat}`);
+              }
+            } catch (error) {
+              Alert.alert("Live Chat Support", `Please visit ${supportLiveChat}`);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   async function handleSendMessage() {
     if (!message.trim()) return;
@@ -129,26 +188,38 @@ export default function SupportScreen() {
         <View style={[styles.contactCard, { backgroundColor: colors.card }]}>
           <TouchableOpacity
             style={[styles.contactRow, { borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth }]}
-            onPress={() => Alert.alert("Email", "support@novapay.ng")}
+            onPress={handleEmailPress}
           >
             <View style={[styles.contactIcon, { backgroundColor: `${colors.primary}15` }]}>
               <Feather name="mail" size={18} color={colors.primary} />
             </View>
             <View>
               <Text style={[styles.contactTitle, { color: colors.foreground }]}>Email support</Text>
-              <Text style={[styles.contactSub, { color: colors.mutedForeground }]}>support@novapay.ng</Text>
+              <Text style={[styles.contactSub, { color: colors.mutedForeground }]}>{supportEmail}</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.contactRow, { borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth }]}
+            onPress={handleWhatsappPress}
+          >
+            <View style={[styles.contactIcon, { backgroundColor: `${colors.primary}15` }]}>
+              <Feather name="message-square" size={18} color={colors.primary} />
+            </View>
+            <View>
+              <Text style={[styles.contactTitle, { color: colors.foreground }]}>WhatsApp Chat</Text>
+              <Text style={[styles.contactSub, { color: colors.mutedForeground }]}>Chat with us on WhatsApp</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.contactRow}
-            onPress={() => Alert.alert("Live Chat", "Live chat is available Mon–Fri, 8am–6pm.")}
+            onPress={handleLiveChatPress}
           >
             <View style={[styles.contactIcon, { backgroundColor: `${colors.primary}15` }]}>
               <Feather name="message-circle" size={18} color={colors.primary} />
             </View>
             <View>
               <Text style={[styles.contactTitle, { color: colors.foreground }]}>Live chat</Text>
-              <Text style={[styles.contactSub, { color: colors.mutedForeground }]}>Mon–Fri, 8am–6pm</Text>
+              <Text style={[styles.contactSub, { color: colors.mutedForeground }]}>Instant agent support</Text>
             </View>
           </TouchableOpacity>
         </View>

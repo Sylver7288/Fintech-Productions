@@ -15,7 +15,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 
 const EMOJIS = ["🎯", "🏠", "✈️", "💻", "🎓", "💍", "🚗", "🌴", "💪", "🎉"];
-const COLORS = ["#6C5CE7", "#00B894", "#E17055", "#0984E3", "#FDCB6E", "#E84393", "#2D3436"];
+const COLORS = ["#E5A93C", "#00B894", "#E17055", "#0984E3", "#FDCB6E", "#E84393", "#2D3436"];
 
 type ActiveGoal = { id: string; name: string; emoji: string | null | undefined; color: string | null | undefined; targetAmount: number; currentAmount: number };
 
@@ -33,7 +33,7 @@ export default function SavingsScreen() {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [activeGoal, setActiveGoal] = useState<ActiveGoal | null>(null);
   const [topUpAmount, setTopUpAmount] = useState("");
-  const [form, setForm] = useState({ name: "", targetAmount: "", emoji: "🎯", color: "#6C5CE7" });
+  const [form, setForm] = useState({ name: "", targetAmount: "", emoji: "🎯", color: "#E5A93C" });
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
   const account = accounts?.[0];
@@ -55,7 +55,7 @@ export default function SavingsScreen() {
       qc.invalidateQueries({ queryKey: getGetSavingsQueryKey() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setShowCreateModal(false);
-      setForm({ name: "", targetAmount: "", emoji: "🎯", color: "#6C5CE7" });
+      setForm({ name: "", targetAmount: "", emoji: "🎯", color: "#E5A93C" });
     } catch {
       Alert.alert("Error", "Could not create savings goal");
     }

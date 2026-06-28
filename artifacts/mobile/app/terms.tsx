@@ -8,19 +8,19 @@ import { useColors } from "@/hooks/useColors";
 const SECTIONS = [
   {
     title: "1. Acceptance of Terms",
-    body: "By accessing or using NovaPay, you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree, please discontinue use immediately.",
+    body: "By accessing or using Novamoni, you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree, please discontinue use immediately.",
   },
   {
     title: "2. Eligibility",
-    body: "You must be at least 18 years old and a resident of Nigeria to use NovaPay. By registering, you confirm that all information you provide is accurate and complete.",
+    body: "You must be at least 18 years old and a resident of Nigeria to use Novamoni. By registering, you confirm that all information you provide is accurate and complete.",
   },
   {
     title: "3. Account Security",
-    body: "You are responsible for maintaining the confidentiality of your PIN, password, and OTP. NovaPay will never ask for these details. Report any suspicious activity to support immediately.",
+    body: "You are responsible for maintaining the confidentiality of your PIN, password, and OTP. Novamoni will never ask for these details. Report any suspicious activity to support immediately.",
   },
   {
     title: "4. Transactions",
-    body: "All transfers are subject to your account limits. NovaPay is not liable for delays caused by third-party banks. Disputes must be raised within 30 days of the transaction date.",
+    body: "All transfers are subject to your account limits. Novamoni is not liable for delays caused by third-party banks. Disputes must be raised within 30 days of the transaction date.",
   },
   {
     title: "5. Data Privacy",
@@ -32,19 +32,19 @@ const SECTIONS = [
   },
   {
     title: "7. Prohibited Activities",
-    body: "You may not use NovaPay for money laundering, fraud, financing terrorism, or any activity prohibited under Nigerian law. Violation results in immediate account suspension and reporting to authorities.",
+    body: "You may not use Novamoni for money laundering, fraud, financing terrorism, or any activity prohibited under Nigerian law. Violation results in immediate account suspension and reporting to authorities.",
   },
   {
     title: "8. Limitation of Liability",
-    body: "NovaPay's liability is limited to the amount of the transaction in dispute. We are not liable for indirect, incidental, or consequential damages arising from your use of the service.",
+    body: "Novamoni's liability is limited to the amount of the transaction in dispute. We are not liable for indirect, incidental, or consequential damages arising from your use of the service.",
   },
   {
     title: "9. Changes to Terms",
-    body: "We may update these terms periodically. Continued use of NovaPay after changes are posted constitutes your acceptance of the revised terms. We will notify you of material changes via the app.",
+    body: "We may update these terms periodically. Continued use of Novamoni after changes are posted constitutes your acceptance of the revised terms. We will notify you of material changes via the app.",
   },
   {
     title: "10. Contact",
-    body: "For questions about these terms, contact us at legal@novapay.ng or visit our Help & Support section in the app.",
+    body: "For questions about these terms, contact us at legal@novamoni.ng or visit our Help & Support section in the app.",
   },
 ];
 
@@ -80,7 +80,7 @@ export default function TermsScreen() {
         ))}
 
         <Text style={[styles.footer, { color: colors.mutedForeground }]}>
-          NovaPay is a financial technology product. Banking services are subject to CBN regulation.{"\n"}© 2026 NovaPay Technologies Ltd.
+          Novamoni is a financial technology product. Banking services are subject to CBN regulation.{"\n"}© 2026 Novamoni Technologies Ltd.
         </Text>
       </ScrollView>
     </View>

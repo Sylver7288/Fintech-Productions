@@ -24,7 +24,7 @@ export default function TransactionDetailScreen() {
     if (!txn) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const lines = [
-      "NovaPay Transaction Receipt",
+      "Novamoni Transaction Receipt",
       "─────────────────────────────",
       `Type:      ${txn.type === "credit" ? "Money received" : "Money sent"}`,
       `Amount:    ${txn.type === "credit" ? "+" : "-"}₦${txn.amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}`,
@@ -37,14 +37,14 @@ export default function TransactionDetailScreen() {
       txn.recipientAccount ? `Account:   ${txn.recipientAccount}` : "",
       txn.senderName ? `From:      ${txn.senderName}` : "",
       "─────────────────────────────",
-      "Powered by NovaPay",
+      "Powered by Novamoni",
     ].filter(Boolean).join("\n");
 
     try {
       if (await Sharing.isAvailableAsync()) {
-        await Share.share({ message: lines, title: "NovaPay Receipt" });
+        await Share.share({ message: lines, title: "Novamoni Receipt" });
       } else {
-        await Share.share({ message: lines, title: "NovaPay Receipt" });
+        await Share.share({ message: lines, title: "Novamoni Receipt" });
       }
     } catch {}
   }

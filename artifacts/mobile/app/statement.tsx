@@ -96,7 +96,7 @@ export default function StatementScreen() {
       const { label } = getPeriodDates(period);
       await Share.share({
         message: csv,
-        title: `NovaPay Statement — ${label}`,
+        title: `Novamoni Statement — ${label}`,
       });
     } catch {
       Alert.alert("Export failed", "Could not generate the statement. Please try again.");

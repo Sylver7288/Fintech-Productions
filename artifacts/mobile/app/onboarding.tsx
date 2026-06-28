@@ -14,9 +14,9 @@ const { width: W } = Dimensions.get("window");
 const SLIDES = [
   {
     icon: "shield" as const,
-    color: "#6C5CE7",
-    bg: "#F0EEFF",
-    title: "Welcome to NovaPay",
+    color: "#E5A93C",
+    bg: "#FFF9E6",
+    title: "Welcome to Novamoni",
     sub: "Your all-in-one Nigerian banking experience. Send, save, and grow your money with confidence.",
   },
   {
@@ -93,7 +93,7 @@ export default function OnboardingScreen() {
               style={[
                 styles.dot,
                 {
-                  backgroundColor: i === current ? "#6C5CE7" : "#E8ECF0",
+                  backgroundColor: i === current ? "#E5A93C" : "#E8ECF0",
                   width: i === current ? 24 : 8,
                 }
               ]}
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   dot: { height: 8, borderRadius: 4 },
   nextBtn: {
     flexDirection: "row", alignItems: "center", justifyContent: "center",
-    gap: 10, backgroundColor: "#6C5CE7",
+    gap: 10, backgroundColor: "#E5A93C",
     height: 56, borderRadius: 16, width: "100%",
   },
   nextText: { color: "#fff", fontSize: 17, fontFamily: "Inter_700Bold" },

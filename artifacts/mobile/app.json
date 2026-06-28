@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "NovaPay",
+    "name": "Novamoni",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,16 +9,15 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#6C5CE7"
+      "backgroundColor": "#E5A93C"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.novapay.mobile"
+      "bundleIdentifier": "com.novamoni.mobile"
     },
     "android": {
-      "package": "com.novapay.mobile"
+      "package": "com.novamoni.mobile"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
@@ -43,6 +42,17 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "990bacef-33c4-4e72-9987-cbd7d2e9dd44"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/990bacef-33c4-4e72-9987-cbd7d2e9dd44"
     }
   }
 }

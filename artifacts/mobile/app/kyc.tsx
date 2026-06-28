@@ -18,28 +18,46 @@ export default function KycScreen() {
   const updateProfile = useUpdateProfile();
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
+  const [kycType, setKycType] = useState<"bvn" | "nin">("bvn");
   const [bvn, setBvn] = useState(user?.bvn ?? "");
-  const isVerified = user?.kycStatus === "verified";
+  const [nin, setNin] = useState((user as any)?.nin ?? "");
+  
+  const isVerified = user?.kycStatus === "verified" || user?.kycStatus === "approved";
 
   async function handleSubmit() {
-    if (bvn.length !== 11 || !/^\d{11}$/.test(bvn)) {
-      Alert.alert("Invalid BVN", "Your BVN must be exactly 11 digits.");
+    const value = kycType === "bvn" ? bvn : nin;
+    const label = kycType === "bvn" ? "BVN" : "NIN";
+    
+    if (value.length !== 11 || !/^\d{11}$/.test(value)) {
+      Alert.alert(`Invalid ${label}`, `Your ${label} must be exactly 11 digits.`);
       return;
     }
+    
     try {
-      const updated = await updateProfile.mutateAsync({ data: { bvn } });
-      updateUser({ ...updated, avatarUrl: updated.avatarUrl ?? null, bvn: updated.bvn ?? null, kycStatus: updated.kycStatus ?? "pending" });
+      const payload = kycType === "bvn" ? { bvn: value } : { nin: value };
+      const updated = await updateProfile.mutateAsync({ data: payload });
+      
+      updateUser({ 
+        ...updated, 
+        avatarUrl: updated.avatarUrl ?? null, 
+        bvn: updated.bvn ?? null, 
+        nin: (updated as any).nin ?? null,
+        kycStatus: updated.kycStatus ?? "pending" 
+      });
+      
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(
-        "BVN Submitted",
-        "Your BVN has been received. Verification typically takes a few minutes.",
+        `${label} Submitted`,
+        `Your ${label} has been received. Verification typically takes a few minutes.`,
         [{ text: "OK", onPress: () => router.back() }]
       );
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert("Error", "Could not submit BVN. Please try again.");
+      Alert.alert("Error", `Could not submit ${label}. Please try again.`);
     }
   }
+
+  const activeValue = kycType === "bvn" ? bvn : nin;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -59,8 +77,18 @@ export default function KycScreen() {
             </View>
             <Text style={[styles.verifiedTitle, { color: "#00B894" }]}>Identity Verified</Text>
             <Text style={[styles.verifiedSub, { color: "#00B894" }]}>
-              Your BVN has been verified. You have full access to all NovaPay features.
+              Your identity has been verified. You have full access to all Novamoni features.
             </Text>
+            {user?.bvn && (
+              <Text style={{ fontSize: 13, fontFamily: "Inter_500Medium", color: "#00B894", marginTop: 8 }}>
+                BVN: •••••••••{user.bvn.slice(-2)}
+              </Text>
+            )}
+            {(user as any)?.nin && (
+              <Text style={{ fontSize: 13, fontFamily: "Inter_500Medium", color: "#00B894", marginTop: 4 }}>
+                NIN: •••••••••{(user as any).nin.slice(-2)}
+              </Text>
+            )}
           </View>
         ) : (
           <>
@@ -70,26 +98,58 @@ export default function KycScreen() {
               </View>
               <Text style={[styles.infoTitle, { color: colors.foreground }]}>Verify your identity</Text>
               <Text style={[styles.infoSub, { color: colors.mutedForeground }]}>
-                Enter your 11-digit Bank Verification Number (BVN) to unlock higher transaction limits and all NovaPay features.
+                Choose a document type and enter your 11-digit number to unlock higher transaction limits and all Novamoni features.
               </Text>
+            </View>
+
+            {/* Document Tabs */}
+            <View style={[styles.tabContainer, { backgroundColor: colors.card }]}>
+              <TouchableOpacity
+                style={[styles.tab, kycType === "bvn" && { backgroundColor: colors.primary }]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setKycType("bvn");
+                }}
+              >
+                <Text style={[styles.tabText, { color: kycType === "bvn" ? "#fff" : colors.foreground }]}>
+                  BVN
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tab, kycType === "nin" && { backgroundColor: colors.primary }]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setKycType("nin");
+                }}
+              >
+                <Text style={[styles.tabText, { color: kycType === "nin" ? "#fff" : colors.foreground }]}>
+                  NIN
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <View style={[styles.card, { backgroundColor: colors.card }]}>
               <View style={styles.fieldWrap}>
-                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>BVN (Bank Verification Number)</Text>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
+                  {kycType === "bvn" ? "BVN (Bank Verification Number)" : "NIN (National Identification Number)"}
+                </Text>
                 <TextInput
                   style={[styles.fieldInput, { color: colors.foreground }]}
-                  placeholder="Enter your 11-digit BVN"
+                  placeholder={kycType === "bvn" ? "Enter your 11-digit BVN" : "Enter your 11-digit NIN"}
                   placeholderTextColor={colors.mutedForeground}
-                  value={bvn}
-                  onChangeText={val => setBvn(val.replace(/\D/g, "").slice(0, 11))}
+                  value={activeValue}
+                  onChangeText={val => {
+                    const clean = val.replace(/\D/g, "").slice(0, 11);
+                    if (kycType === "bvn") setBvn(clean);
+                    else setNin(clean);
+                  }}
                   keyboardType="numeric"
                   maxLength={11}
                   secureTextEntry
                 />
-                {bvn.length > 0 && (
-                  <Text style={[styles.charCount, { color: bvn.length === 11 ? colors.success : colors.mutedForeground }]}>
-                    {bvn.length}/11 digits
+                {activeValue.length > 0 && (
+                  <Text style={[styles.charCount, { color: activeValue.length === 11 ? colors.success : colors.mutedForeground }]}>
+                    {activeValue.length}/11 digits
                   </Text>
                 )}
               </View>
@@ -98,22 +158,22 @@ export default function KycScreen() {
             <View style={[styles.noteCard, { backgroundColor: `${colors.warning}15`, borderColor: `${colors.warning}30` }]}>
               <Feather name="info" size={16} color={colors.warning} />
               <Text style={[styles.noteText, { color: colors.warning }]}>
-                Your BVN is used only for identity verification and is never shared with third parties.
+                Your data is used only for identity verification and is never shared with third parties.
               </Text>
             </View>
 
             <TouchableOpacity
-              style={[styles.submitBtn, { backgroundColor: colors.primary, opacity: updateProfile.isPending ? 0.7 : 1 }]}
+              style={[styles.submitBtn, { backgroundColor: colors.primary, opacity: (updateProfile.isPending || activeValue.length !== 11) ? 0.7 : 1 }]}
               onPress={handleSubmit}
-              disabled={updateProfile.isPending || bvn.length !== 11}
+              disabled={updateProfile.isPending || activeValue.length !== 11}
               activeOpacity={0.85}
             >
               {updateProfile.isPending
                 ? <ActivityIndicator color="#fff" />
                 : <>
-                  <Feather name="check-circle" size={18} color="#fff" />
-                  <Text style={styles.submitBtnText}>Submit BVN</Text>
-                </>
+                    <Feather name="check-circle" size={18} color="#fff" />
+                    <Text style={styles.submitBtnText}>Submit {kycType === "bvn" ? "BVN" : "NIN"}</Text>
+                  </>
               }
             </TouchableOpacity>
           </>
@@ -164,4 +224,20 @@ const styles = StyleSheet.create({
     justifyContent: "center", alignItems: "center", gap: 10,
   },
   submitBtnText: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },
+  tabContainer: {
+    flexDirection: "row",
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 8,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  tabText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
 });

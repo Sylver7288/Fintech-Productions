@@ -19,8 +19,8 @@ export default function PersonalInfoScreen() {
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
   const [form, setForm] = useState({
-    firstName: user?.firstName ?? "",
-    lastName: user?.lastName ?? "",
+    firstName: user?.firstName || (user as any)?.first_name || "",
+    lastName: user?.lastName || (user as any)?.last_name || "",
     phone: user?.phone ?? "",
   });
 
@@ -34,7 +34,13 @@ export default function PersonalInfoScreen() {
     }
     try {
       const updated = await updateProfile.mutateAsync({ data: form });
-      updateUser({ ...updated, avatarUrl: updated.avatarUrl ?? null, bvn: updated.bvn ?? null, kycStatus: updated.kycStatus ?? "pending" });
+      updateUser({ 
+        ...updated, 
+        avatarUrl: updated.avatarUrl ?? null, 
+        bvn: updated.bvn ?? null, 
+        nin: (updated as any).nin ?? null,
+        kycStatus: updated.kycStatus ?? "pending" 
+      });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Saved", "Your profile has been updated.", [
         { text: "OK", onPress: () => router.back() },

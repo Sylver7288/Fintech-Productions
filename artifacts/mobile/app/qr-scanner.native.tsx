@@ -50,7 +50,7 @@ export default function QrScannerScreen() {
     } catch {
       Alert.alert(
         "Invalid QR Code",
-        "This QR code is not a NovaPay payment code.",
+        "This QR code is not a Novamoni payment code.",
         [{ text: "OK", onPress: () => setScanned(false) }]
       );
     }
@@ -80,7 +80,7 @@ export default function QrScannerScreen() {
           </View>
           <Text style={[styles.permTitle, { color: colors.foreground }]}>Camera Access Needed</Text>
           <Text style={[styles.permSub, { color: colors.mutedForeground }]}>
-            NovaPay needs camera access to scan QR codes for payments.
+            Novamoni needs camera access to scan QR codes for payments.
           </Text>
           <TouchableOpacity
             style={[styles.permBtn, { backgroundColor: colors.primary }]}
@@ -121,13 +121,13 @@ export default function QrScannerScreen() {
             <View style={[styles.corner, styles.cornerBL]} />
             <View style={[styles.corner, styles.cornerBR]} />
           </View>
-          <Text style={styles.scanHint}>Point camera at a NovaPay QR code</Text>
+          <Text style={styles.scanHint}>Point camera at a Novamoni QR code</Text>
         </View>
 
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 24 }]}>
           {scanned && (
             <TouchableOpacity
-              style={[styles.rescanBtn]}
+              style={[styles.rescanBtn, { backgroundColor: colors.primary }]}
               onPress={() => setScanned(false)}
             >
               <Text style={styles.rescanText}>Tap to scan again</Text>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   bottomBar: { alignItems: "center", paddingHorizontal: 24 },
   rescanBtn: {
-    backgroundColor: "#6C5CE7", paddingHorizontal: 32, paddingVertical: 14,
+    paddingHorizontal: 32, paddingVertical: 14,
     borderRadius: 14,
   },
   rescanText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },

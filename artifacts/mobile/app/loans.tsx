@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Alert, Platform, Modal, TextInput
@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import { useGetLoans, useApplyLoan, useGetAccounts, getGetLoansQueryKey, getGetAccountsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -36,6 +37,8 @@ const STATUS_COLORS: Record<string, string> = {
   repaid: "#636E72",
 };
 
+import { useAuth } from "@/context/AuthContext";
+
 export default function LoansScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -43,6 +46,45 @@ export default function LoansScreen() {
   const { data: loans, isLoading } = useGetLoans();
   const { data: accounts } = useGetAccounts();
   const applyLoan = useApplyLoan();
+  const { isFeatureEnabled } = useFeatureFlags();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && user.kycStatus !== "verified" && user.kycStatus !== "approved") {
+      Alert.alert(
+        "KYC Verification Required",
+        "Before you can apply for loans, you must complete your KYC verification.",
+        [
+          { text: "Go to KYC", onPress: () => router.replace("/kyc") },
+          { text: "Cancel", onPress: () => router.back(), style: "cancel" }
+        ]
+      );
+    }
+  }, [user]);
+
+  const loansEnabled = isFeatureEnabled("loans-enabled");
+
+  if (!loansEnabled) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center", padding: 20 }]}>
+        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.destructive + "12", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
+          <Feather name="lock" size={32} color={colors.destructive} />
+        </View>
+        <Text style={{ fontSize: 20, fontFamily: "Inter_700Bold", color: colors.foreground, marginBottom: 8, textAlign: "center" }}>
+          Novamoni Credit Offline
+        </Text>
+        <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center", marginBottom: 24, lineHeight: 20 }}>
+          Credit applications and loans management are undergoing a brief maintenance update. Please check back shortly.
+        </Text>
+        <TouchableOpacity
+          style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.primary }}
+          onPress={() => router.back()}
+        >
+          <Text style={{ color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const [showModal, setShowModal] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(LOAN_OFFERS[1]!.amount);
@@ -94,7 +136,7 @@ export default function LoansScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.foreground }]}>NovaPay Credit</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>Novamoni Credit</Text>
         <View style={{ width: 38 }} />
       </View>
 
@@ -104,7 +146,7 @@ export default function LoansScreen() {
           <Text style={styles.heroTitle}>Get instant credit</Text>
           <Text style={styles.heroSub}>Up to ₦500,000 at 2.5% monthly. Repay over 1–12 months.</Text>
           <TouchableOpacity style={styles.heroBtn} onPress={() => setShowModal(true)}>
-            <Text style={styles.heroBtnText}>Apply now</Text>
+            <Text style={[styles.heroBtnText, { color: colors.primary }]}>Apply now</Text>
           </TouchableOpacity>
         </View>
 
@@ -295,7 +337,7 @@ const styles = StyleSheet.create({
   heroTitle: { color: "#fff", fontSize: 22, fontFamily: "Inter_700Bold" },
   heroSub: { color: "rgba(255,255,255,0.8)", fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
   heroBtn: { backgroundColor: "#fff", borderRadius: 12, paddingVertical: 12, alignItems: "center", marginTop: 8 },
-  heroBtnText: { color: "#6C5CE7", fontSize: 15, fontFamily: "Inter_700Bold" },
+  heroBtnText: { fontSize: 15, fontFamily: "Inter_700Bold" },
   features: { borderRadius: 20, padding: 16, flexDirection: "row", gap: 8 },
   featureItem: { flex: 1, alignItems: "center", gap: 6 },
   featureIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: "center", alignItems: "center" },

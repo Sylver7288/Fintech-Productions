@@ -7,20 +7,33 @@ import {
 } from "@expo-google-fonts/inter";
 import { Feather } from "@expo/vector-icons";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, router } from "expo-router";
+import { Stack, router, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { setBaseUrl } from "@workspace/api-client-react";
+import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider, useApp } from "@/context/AppContext";
+import { FeatureFlagsProvider } from "@/context/FeatureFlagsContext";
 
 // Set API base URL for all requests
-setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
+let apiBaseUrl = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
+if (!process.env.EXPO_PUBLIC_DOMAIN || process.env.EXPO_PUBLIC_DOMAIN.includes("localhost")) {
+  if (Platform.OS === "web") {
+    apiBaseUrl = "http://localhost:8080";
+  } else {
+    const debuggerHost = Constants.expoConfig?.hostUri;
+    const host = debuggerHost ? debuggerHost.split(":")[0] : "localhost";
+    apiBaseUrl = `http://${host}:8080`;
+  }
+}
+setBaseUrl(apiBaseUrl);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,15 +47,24 @@ const queryClient = new QueryClient({
 function NavigationController() {
   const { pinEnabled, pinVerified, hasSeenOnboarding, isLoaded: appLoaded } = useApp();
   const { user, isLoading: authLoading } = useAuth();
+  const segments = useSegments();
 
   useEffect(() => {
     if (!appLoaded || authLoading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+    const isOtpVerify = segments[1] === "otp-verify";
+
     if (!user && !hasSeenOnboarding) {
       router.replace("/onboarding" as any);
+    } else if (user && !user.isEmailVerified) {
+      if (!inAuthGroup || !isOtpVerify) {
+        router.replace("/(auth)/otp-verify" as any);
+      }
     } else if (user && pinEnabled && !pinVerified) {
       router.replace("/pin-verify" as any);
     }
-  }, [appLoaded, authLoading, user, pinEnabled, pinVerified, hasSeenOnboarding]);
+  }, [appLoaded, authLoading, user, pinEnabled, pinVerified, hasSeenOnboarding, segments]);
 
   return null;
 }
@@ -110,7 +132,9 @@ export default function RootLayout() {
             <KeyboardProvider>
               <AuthProvider>
                 <AppProvider>
-                  <RootLayoutNav />
+                  <FeatureFlagsProvider>
+                    <RootLayoutNav />
+                  </FeatureFlagsProvider>
                 </AppProvider>
               </AuthProvider>
             </KeyboardProvider>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Alert, Platform, Modal, TextInput,
@@ -8,6 +8,8 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
+import { useAuth } from "@/context/AuthContext";
 import { BankCard } from "@/components/BankCard";
 import {
   useGetCards, useFreezeCard, useGetAccounts, useCreateCard,
@@ -15,7 +17,7 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-const CARD_COLORS = ["#6C5CE7", "#E17055", "#0984E3", "#00B894", "#FDCB6E", "#2D3436"];
+const CARD_COLORS = ["#300010", "#FACC15", "#1E000A", "#0A0A0F", "#430016", "#2D3436"];
 
 export default function CardsScreen() {
   const colors = useColors();
@@ -27,7 +29,34 @@ export default function CardsScreen() {
   const createCard = useCreateCard();
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [showRequestModal, setShowRequestModal] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(CARD_COLORS[2]);
+  const [selectedColor, setSelectedColor] = useState(CARD_COLORS[0]);
+  const { isFeatureEnabled } = useFeatureFlags();
+
+  const cardCreationEnabled = isFeatureEnabled("card-creation-enabled");
+
+  const { user } = useAuth();
+
+  const tryShowRequestModal = () => {
+    if (user && user.kycStatus !== "verified" && user.kycStatus !== "approved") {
+      Alert.alert(
+        "KYC Verification Required",
+        "Before you can request virtual or physical cards, you must complete your KYC verification.",
+        [
+          { text: "Go to KYC", onPress: () => router.push("/kyc" as any) },
+          { text: "Cancel", style: "cancel" }
+        ]
+      );
+      return;
+    }
+    if (!cardCreationEnabled) {
+      Alert.alert(
+        "Card Creation Offline",
+        "Virtual card creation is temporarily unavailable due to card network maintenance. Please check back later."
+      );
+      return;
+    }
+    setShowRequestModal(true);
+  };
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
@@ -72,7 +101,7 @@ export default function CardsScreen() {
         <Text style={[styles.title, { color: colors.foreground }]}>My Cards</Text>
         <TouchableOpacity
           style={[styles.addBtn, { backgroundColor: colors.primary }]}
-          onPress={() => setShowRequestModal(true)}
+          onPress={tryShowRequestModal}
         >
           <Feather name="plus" size={20} color="#fff" />
         </TouchableOpacity>
@@ -87,7 +116,7 @@ export default function CardsScreen() {
           <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Request a virtual card to get started</Text>
           <TouchableOpacity
             style={[styles.emptyBtn, { backgroundColor: colors.primary }]}
-            onPress={() => setShowRequestModal(true)}
+            onPress={tryShowRequestModal}
           >
             <Feather name="credit-card" size={16} color="#fff" />
             <Text style={styles.emptyBtnText}>Request virtual card</Text>
@@ -222,7 +251,7 @@ export default function CardsScreen() {
             <View style={[styles.previewCard, { backgroundColor: selectedColor }]}>
               <Text style={styles.previewChip}>VIRTUAL</Text>
               <Text style={styles.previewNumber}>•••• •••• •••• ••••</Text>
-              <Text style={styles.previewLabel}>NovaPay Mastercard</Text>
+              <Text style={styles.previewLabel}>Novamoni Mastercard</Text>
             </View>
 
             <View style={styles.modalActions}>

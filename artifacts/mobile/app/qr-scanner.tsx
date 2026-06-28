@@ -26,7 +26,7 @@ export default function QrScannerScreen() {
         </View>
         <Text style={[styles.title, { color: colors.foreground }]}>Camera not available</Text>
         <Text style={[styles.sub, { color: colors.mutedForeground }]}>
-          QR scanning requires the NovaPay mobile app on iOS or Android.
+          QR scanning requires the Novamoni mobile app on iOS or Android.
         </Text>
         <TouchableOpacity
           style={[styles.btn, { backgroundColor: colors.primary }]}
