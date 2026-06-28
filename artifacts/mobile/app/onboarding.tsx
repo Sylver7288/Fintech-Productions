@@ -54,7 +54,7 @@ export default function OnboardingScreen() {
 
   async function handleFinish() {
     await markOnboardingSeen();
-    router.replace("/(auth)/login");
+    router.replace("/(auth)/register");
   }
 
   return (
