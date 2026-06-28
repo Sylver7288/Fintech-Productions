@@ -84,7 +84,7 @@ export default function LoginScreen() {
     return (
       <KeyboardAvoidingView
         style={[s.root, { backgroundColor: colors.background }]}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 30}
       >
         <ScrollView
@@ -147,7 +147,7 @@ export default function LoginScreen() {
           backgroundImage: `radial-gradient(circle at 50% 50%, ${colors.secondary} 0%, ${colors.background} 100%)`
         } as any
       ]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior="padding"
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 30}
     >
       <ScrollView
