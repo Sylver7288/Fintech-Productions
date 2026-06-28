@@ -63,14 +63,14 @@ export default function RegisterScreen() {
           backgroundImage: `radial-gradient(circle at 50% 50%, ${colors.secondary} 0%, ${colors.background} 100%)`
         } as any
       ]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 30}
     >
       <ScrollView
         contentContainerStyle={s.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        style={Platform.OS === "web" ? { width: "100%" } : undefined}
+        style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
       >
         <View style={[
           s.cardContainer,

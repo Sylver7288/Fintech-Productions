@@ -98,7 +98,7 @@ export default function OtpVerifyScreen() {
         contentContainerStyle={s.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        style={Platform.OS === "web" ? { width: "100%" } : undefined}
+        style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
       >
         <View style={[
           s.cardContainer,

@@ -21,6 +21,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider, useApp } from "@/context/AppContext";
 import { FeatureFlagsProvider } from "@/context/FeatureFlagsContext";
+import { useColors } from "@/hooks/useColors";
 
 // Set API base URL for all requests
 let apiBaseUrl = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
@@ -72,10 +73,11 @@ function NavigationController() {
 }
 
 function RootLayoutNav() {
+  const colors = useColors();
   return (
     <>
       <NavigationController />
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
