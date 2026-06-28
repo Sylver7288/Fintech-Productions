@@ -6,9 +6,9 @@ import { AppContext } from "@/context/AppContext";
 export function useColors() {
   const scheme = useColorScheme();
   const appCtx = useContext(AppContext);
-  const theme = appCtx?.theme ?? "system";
+  const theme = appCtx?.theme ?? "dark";
   const effectiveScheme: "light" | "dark" =
-    theme === "system" ? (scheme === "dark" ? "dark" : "light") : theme;
+    theme === "system" ? "dark" : theme;
   const palette = effectiveScheme === "dark" ? colors.dark : colors.light;
   return { ...palette, radius: colors.radius };
 }

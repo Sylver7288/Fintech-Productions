@@ -62,7 +62,8 @@ A full-stack personal banking mobile app (like Kuda) — register, log in, manag
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- The application is branded for a Microfinance Bank (MFB) named **Novamoni** (replacing/rebranding the existing "NovaPay" references).
+
 
 ## Pointers
 

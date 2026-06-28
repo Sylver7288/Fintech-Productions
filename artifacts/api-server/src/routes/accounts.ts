@@ -1,7 +1,8 @@
 import { Router, type IRouter } from "express";
-import { db, accountsTable, transactionsTable, savingsTable } from "@workspace/db";
+import { db, accountsTable, transactionsTable, savingsTable, featureFlagsTable, notificationsTable } from "@workspace/db";
 import { eq, and, gte, lte, sum, desc } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { generateId, generateReference } from "../lib/auth";
 
 const router: IRouter = Router();
 
@@ -136,6 +137,82 @@ router.get("/accounts/:id/statement", requireAuth, async (req: AuthRequest, res)
     senderName: t.senderName ?? null,
     category: t.category ?? null,
   })));
+});
+
+router.post("/accounts/:id/deposit", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const { amount } = req.body;
+
+  if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+    res.status(400).json({ error: "Invalid deposit amount" });
+    return;
+  }
+
+  // Check if Paystack Gateway is online
+  try {
+    const [paystackFlag] = await db.select().from(featureFlagsTable)
+      .where(eq(featureFlagsTable.key, "sandbox-paystack-online")).limit(1);
+    const isPaystackOnline = paystackFlag ? paystackFlag.isEnabled : true;
+    if (!isPaystackOnline) {
+      res.status(503).json({ error: "Paystack Gateway Timeout: Simulation of service outage is active." });
+      return;
+    }
+  } catch (err) {
+    // Fallback
+  }
+
+  try {
+    const txn = await db.transaction(async (tx) => {
+      const [account] = await tx.select().from(accountsTable)
+        .where(and(eq(accountsTable.id, raw), eq(accountsTable.userId, req.userId!)))
+        .for("update");
+
+      if (!account) {
+        throw new Error("Account not found");
+      }
+
+      const currentBalance = parseFloat(account.balance);
+      const newBalance = (currentBalance + Number(amount)).toFixed(2);
+
+      await tx.update(accountsTable)
+        .set({ balance: newBalance })
+        .where(eq(accountsTable.id, raw));
+
+      const [insertedTxn] = await tx.insert(transactionsTable).values({
+        id: generateId(),
+        accountId: raw,
+        type: "credit",
+        amount: Number(amount).toFixed(2),
+        currency: account.currency,
+        description: "Deposit via Paystack Card",
+        status: "completed",
+        reference: generateReference(),
+        category: "Deposit",
+        recipientName: null,
+        recipientBank: null,
+        recipientAccount: null,
+        senderName: "Paystack Checkout",
+      }).returning();
+
+      await tx.insert(notificationsTable).values({
+        id: generateId(),
+        userId: req.userId!,
+        title: "Account Funded",
+        message: `₦${Number(amount).toFixed(2)} deposited successfully via Paystack Card. Ref: ${insertedTxn.reference}`,
+        type: "credit",
+      });
+
+      return { account, txn: insertedTxn };
+    });
+
+    res.status(200).json({
+      message: "Account funded successfully",
+      balance: parseFloat(txn.account.balance) + Number(amount),
+      transaction: txn.txn
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 export default router;

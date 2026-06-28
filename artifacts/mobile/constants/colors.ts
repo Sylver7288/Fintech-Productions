@@ -1,7 +1,7 @@
 const colors = {
   light: {
     text: "#0D0D0D",
-    tint: "#6C5CE7",
+    tint: "#FACC15",
 
     background: "#F7F8FA",
     foreground: "#0D0D0D",
@@ -9,11 +9,11 @@ const colors = {
     card: "#FFFFFF",
     cardForeground: "#0D0D0D",
 
-    primary: "#6C5CE7",
-    primaryForeground: "#FFFFFF",
+    primary: "#FACC15",
+    primaryForeground: "#0D0D0D",
 
-    secondary: "#F0EEFF",
-    secondaryForeground: "#6C5CE7",
+    secondary: "#FFF9E6",
+    secondaryForeground: "#FACC15",
 
     muted: "#F0F2F5",
     mutedForeground: "#8A94A6",
@@ -32,26 +32,26 @@ const colors = {
     warning: "#FDCB6E",
     creditGreen: "#00B894",
     debitRed: "#E74C3C",
-    cardGradientStart: "#6C5CE7",
-    cardGradientEnd: "#a29bfe",
+    cardGradientStart: "#300010",
+    cardGradientEnd: "#430016",
     overlay: "rgba(0,0,0,0.5)",
     skeleton: "#E8ECF0",
   },
   dark: {
     text: "#F7F8FA",
-    tint: "#a29bfe",
+    tint: "#FACC15",
 
-    background: "#0A0A0F",
+    background: "#430016",
     foreground: "#F7F8FA",
 
-    card: "#161622",
+    card: "#300010",
     cardForeground: "#F7F8FA",
 
-    primary: "#a29bfe",
+    primary: "#FACC15",
     primaryForeground: "#0A0A0F",
 
-    secondary: "#1E1E2E",
-    secondaryForeground: "#a29bfe",
+    secondary: "#2A2315",
+    secondaryForeground: "#FACC15",
 
     muted: "#1E1E2E",
     mutedForeground: "#6C7A8D",
@@ -69,8 +69,8 @@ const colors = {
     warning: "#FDCB6E",
     creditGreen: "#00B894",
     debitRed: "#E74C3C",
-    cardGradientStart: "#6C5CE7",
-    cardGradientEnd: "#a29bfe",
+    cardGradientStart: "#300010",
+    cardGradientEnd: "#430016",
     overlay: "rgba(0,0,0,0.7)",
     skeleton: "#2A2A3E",
   },

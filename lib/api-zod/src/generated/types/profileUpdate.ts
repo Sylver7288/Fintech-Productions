@@ -16,4 +16,9 @@ export interface ProfileUpdate {
      * @maxLength 11
      */
   bvn?: string;
+  /**
+     * @minLength 11
+     * @maxLength 11
+     */
+  nin?: string;
 }

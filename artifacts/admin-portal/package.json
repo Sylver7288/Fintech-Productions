@@ -1,0 +1,29 @@
+{
+  "name": "@workspace/admin-portal",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev --port 8082 --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --port 8082",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "lucide-react": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "recharts": "^2.15.4",
+    "wouter": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "~5.9.3",
+    "vite": "catalog:"
+  }
+}

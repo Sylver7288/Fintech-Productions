@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, accountsTable, cardsTable, transactionsTable } from "@workspace/db";
+import { db, usersTable, accountsTable, cardsTable, transactionsTable, auditLogsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import {
@@ -7,15 +7,20 @@ import {
   generateId, generateAccountNumber, generateReference,
 } from "../lib/auth";
 import { tokensStore } from "../lib/tokens";
+import { sendOtpEmail } from "../lib/email";
+import { sendOtpSms } from "../lib/sms";
 
 const router: IRouter = Router();
 
-const CARD_COLORS = ["#6C5CE7", "#0984E3", "#00B894", "#E17055", "#6C5CE7"];
+const CARD_COLORS = ["#300010", "#FACC15", "#1E000A", "#0A0A0F", "#430016"];
+
+// OTP Verification Store
+export const otpStore = new Map<string, { code: string; expiresAt: number }>();
 
 async function seedDemoTransactions(accountId: string, currency: string) {
   const now = Date.now();
   const demos = [
-    { type: "credit", amount: "50000.00", description: "Welcome bonus", category: "Transfer", senderName: "NovaPay", daysAgo: 0 },
+    { type: "credit", amount: "50000.00", description: "Welcome bonus", category: "Transfer", senderName: "Novamoni", daysAgo: 0 },
     { type: "debit", amount: "3500.00", description: "Uber ride", category: "Transport", recipientName: "Uber", recipientBank: "Flutterwave", daysAgo: 1 },
     { type: "debit", amount: "8200.00", description: "Shoprite groceries", category: "Food & Drink", recipientName: "Shoprite", recipientBank: "GTBank", daysAgo: 2 },
     { type: "credit", amount: "15000.00", description: "Freelance payment", category: "Transfer", senderName: "Chukwuemeka O.", daysAgo: 3 },
@@ -82,7 +87,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     balance: "71700", // 50000 welcome - debits + 40000 credits = 71700
     currency: "NGN",
     status: "active",
-    bankName: "NovaPay",
+    bankName: "Novamoni",
   });
 
   // Auto-create a virtual card
@@ -103,13 +108,25 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   // Seed demo transactions so the app looks alive
   await seedDemoTransactions(accountId, "NGN");
 
-  const token = generateToken();
+  // Auto-send verification code on registration
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore.set(email, { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 });
+  await sendOtpEmail(email, otp);
+  await sendOtpSms(phone, otp);
+
+  const token = generateToken(id);
   tokensStore.set(token, id);
 
   const { passwordHash: _ph, ...safeUser } = user;
   res.status(201).json({
     token,
-    user: { ...safeUser, avatarUrl: safeUser.avatarUrl ?? null, bvn: safeUser.bvn ?? null },
+    user: { 
+      ...safeUser, 
+      avatarUrl: safeUser.avatarUrl ?? null, 
+      bvn: safeUser.bvn ?? null, 
+      nin: safeUser.nin ?? null,
+      isEmailVerified: safeUser.isEmailVerified
+    },
   });
 });
 
@@ -127,13 +144,83 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  const token = generateToken();
+  const token = generateToken(user.id);
   tokensStore.set(token, user.id);
 
   const { passwordHash: _ph, ...safeUser } = user;
   res.json({
     token,
-    user: { ...safeUser, avatarUrl: safeUser.avatarUrl ?? null, bvn: safeUser.bvn ?? null },
+    user: { 
+      ...safeUser, 
+      avatarUrl: safeUser.avatarUrl ?? null, 
+      bvn: safeUser.bvn ?? null, 
+      nin: safeUser.nin ?? null,
+      isEmailVerified: safeUser.isEmailVerified
+    },
+  });
+});
+
+
+
+// 1. Send OTP
+router.post("/auth/send-otp", async (req, res): Promise<void> => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ error: "Email is required" });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore.set(email, { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 }); // 10 mins
+  await sendOtpEmail(email, otp);
+  if (user) {
+    await sendOtpSms(user.phone, otp);
+  }
+
+  try {
+    await db.insert(auditLogsTable).values({
+      id: generateId(),
+      adminId: "system",
+      action: "SEND_OTP",
+      targetType: "user",
+      targetId: email,
+      details: `Generated OTP ${otp} for email ${email}`,
+    });
+  } catch (err) {
+    // Ignore audit log error if not fully initialized
+  }
+
+  res.json({
+    success: true,
+    message: "Verification code sent to your email.",
+    devCode: otp,
+  });
+});
+
+// 2. Verify OTP
+router.post("/auth/verify-otp", async (req, res): Promise<void> => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    res.status(400).json({ error: "Email and verification code are required" });
+    return;
+  }
+
+  const record = otpStore.get(email);
+  if (!record || record.code !== code || record.expiresAt < Date.now()) {
+    res.status(400).json({ error: "Invalid or expired verification code" });
+    return;
+  }
+
+  otpStore.delete(email);
+
+  await db.update(usersTable)
+    .set({ isEmailVerified: true })
+    .where(eq(usersTable.email, email));
+
+  res.json({
+    success: true,
+    message: "Email verified successfully.",
   });
 });
 

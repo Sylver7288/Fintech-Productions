@@ -29,6 +29,15 @@ export interface LoginInput {
   password: string;
 }
 
+export interface SendOtpInput {
+  email: string;
+}
+
+export interface VerifyOtpInput {
+  email: string;
+  code: string;
+}
+
 export type UserProfileKycStatus = typeof UserProfileKycStatus[keyof typeof UserProfileKycStatus];
 
 
@@ -44,10 +53,13 @@ export interface UserProfile {
   lastName: string;
   email: string;
   phone: string;
+  isEmailVerified: boolean;
   /** @nullable */
   avatarUrl?: string | null;
   /** @nullable */
   bvn?: string | null;
+  /** @nullable */
+  nin?: string | null;
   kycStatus?: UserProfileKycStatus;
   createdAt: string;
 }
@@ -67,6 +79,11 @@ export interface ProfileUpdate {
      * @maxLength 11
      */
   bvn?: string;
+  /**
+     * @minLength 11
+     * @maxLength 11
+     */
+  nin?: string;
 }
 
 export type AccountType = typeof AccountType[keyof typeof AccountType];
@@ -464,6 +481,73 @@ export interface BeneficiaryInput {
   accountNumber: string;
 }
 
+export interface Banner {
+  id: string;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+  linkUrl: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface NameEnquiryInput {
+  accountNumber: string;
+  bankCode: string;
+}
+
+export interface NameEnquiryResponse {
+  success: boolean;
+  accountName?: string;
+  error?: string;
+}
+
+export type TransferStatusResponseStatus = typeof TransferStatusResponseStatus[keyof typeof TransferStatusResponseStatus];
+
+
+export const TransferStatusResponseStatus = {
+  completed: 'completed',
+  failed: 'failed',
+  pending: 'pending',
+} as const;
+
+export interface TransferStatusResponse {
+  success: boolean;
+  status: TransferStatusResponseStatus;
+  error?: string;
+}
+
+export type EasyPayWebhookInputStatus = typeof EasyPayWebhookInputStatus[keyof typeof EasyPayWebhookInputStatus];
+
+
+export const EasyPayWebhookInputStatus = {
+  completed: 'completed',
+  failed: 'failed',
+} as const;
+
+export interface EasyPayWebhookInput {
+  reference: string;
+  status: EasyPayWebhookInputStatus;
+}
+
+export interface SupportSettings {
+  id: string;
+  email: string;
+  whatsapp: string;
+  liveChatUrl: string;
+}
+
+export type SendOtp200 = {
+  success: boolean;
+  message: string;
+  devCode?: string;
+};
+
+export type VerifyOtp200 = {
+  success: boolean;
+  message: string;
+};
+
 export type GetTransactionsParams = {
 accountId?: string;
 limit?: number;
@@ -479,6 +563,10 @@ export const GetTransactionsType = {
   debit: 'debit',
   all: 'all',
 } as const;
+
+export type EasyPayWebhook200 = {
+  success: boolean;
+};
 
 export type GetAnalyticsParams = {
 days?: number;

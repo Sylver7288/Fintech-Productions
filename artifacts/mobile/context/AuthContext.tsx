@@ -10,7 +10,9 @@ interface User {
   phone: string;
   avatarUrl: string | null;
   bvn: string | null;
+  nin: string | null;
   kycStatus: string;
+  isEmailVerified: boolean;
   createdAt: string;
 }
 

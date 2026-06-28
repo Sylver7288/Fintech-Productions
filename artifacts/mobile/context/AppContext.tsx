@@ -22,7 +22,7 @@ interface AppContextType {
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>("dark");
   const [pinEnabled, setPinEnabled] = useState(false);
   const [pin, setPin] = useState<string | null>(null);
   const [pinVerified, setPinVerified] = useState(false);
@@ -40,7 +40,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           AsyncStorage.getItem("has_seen_onboarding"),
           AsyncStorage.getItem("two_fa_enabled"),
         ]);
-        if (t) setThemeState(t as Theme);
+        if (t) {
+          setThemeState(t as Theme);
+        } else {
+          setThemeState("dark");
+        }
         setPinEnabled(pe === "true");
         setPin(p);
         setHasSeenOnboarding(hso !== "false");

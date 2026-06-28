@@ -96,6 +96,70 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /auth/send-otp:
+    post:
+      operationId: sendOtp
+      tags: [auth]
+      summary: Send email verification OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOtpInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  devCode:
+                    type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/verify-otp:
+    post:
+      operationId: verifyOtp
+      tags: [auth]
+      summary: Verify email verification OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyOtpInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "400":
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /profile:
     get:
       operationId: getProfile
@@ -352,6 +416,79 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /transfers/name-enquiry:
+    post:
+      operationId: verifyName
+      tags: [transfers]
+      summary: Verify account holder name from NIBSS EasyPay Name Enquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NameEnquiryInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NameEnquiryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /transfers/{reference}/status:
+    get:
+      operationId: queryTransferStatus
+      tags: [transfers]
+      summary: Query NIBSS EasyPay transfer status
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferStatusResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /transfers/webhook/easypay:
+    post:
+      operationId: easyPayWebhook
+      tags: [transfers]
+      summary: Webhook for NIBSS EasyPay transfer status callbacks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EasyPayWebhookInput"
+      responses:
+        "200":
+          description: Callback processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
 
   /savings:
     get:
@@ -787,6 +924,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /banners:
+    get:
+      operationId: getBanners
+      tags: [profile]
+      summary: Get active promotional and ad banners
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Banner"
+
+  /support-settings:
+    get:
+      operationId: getSupportSettings
+      tags: [profile]
+      summary: Get system support contact details (email, whatsapp, live chat)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportSettings"
+
 components:
   schemas:
     HealthStatus:
@@ -834,6 +1003,24 @@ components:
         password:
           type: string
 
+    SendOtpInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    VerifyOtpInput:
+      type: object
+      required: [email, code]
+      properties:
+        email:
+          type: string
+          format: email
+        code:
+          type: string
+
     AuthResponse:
       type: object
       required: [token, user]
@@ -845,7 +1032,7 @@ components:
 
     UserProfile:
       type: object
-      required: [id, firstName, lastName, email, phone, createdAt]
+      required: [id, firstName, lastName, email, phone, isEmailVerified, createdAt]
       properties:
         id:
           type: string
@@ -857,9 +1044,13 @@ components:
           type: string
         phone:
           type: string
+        isEmailVerified:
+          type: boolean
         avatarUrl:
           type: ["string", "null"]
         bvn:
+          type: ["string", "null"]
+        nin:
           type: ["string", "null"]
         kycStatus:
           type: string
@@ -880,6 +1071,10 @@ components:
         avatarUrl:
           type: string
         bvn:
+          type: string
+          minLength: 11
+          maxLength: 11
+        nin:
           type: string
           minLength: 11
           maxLength: 11
@@ -1343,4 +1538,82 @@ components:
         bank:
           type: string
         accountNumber:
+          type: string
+
+    Banner:
+      type: object
+      required: [id, title, description, imageUrl, linkUrl, isActive, createdAt]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
+        linkUrl:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    NameEnquiryInput:
+      type: object
+      required: [accountNumber, bankCode]
+      properties:
+        accountNumber:
+          type: string
+        bankCode:
+          type: string
+
+    NameEnquiryResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+        accountName:
+          type: string
+        error:
+          type: string
+
+    TransferStatusResponse:
+      type: object
+      required: [success, status]
+      properties:
+        success:
+          type: boolean
+        status:
+          type: string
+          enum: [completed, failed, pending]
+        error:
+          type: string
+
+    EasyPayWebhookInput:
+      type: object
+      required: [reference, status]
+      properties:
+        reference:
+          type: string
+        status:
+          type: string
+          enum: [completed, failed]
+
+    SupportSettings:
+      type: object
+      required: [id, email, whatsapp, liveChatUrl]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        whatsapp:
+          type: string
+        liveChatUrl:
           type: string

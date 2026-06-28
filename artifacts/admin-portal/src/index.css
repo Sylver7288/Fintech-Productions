@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@theme {
+  --color-indigo-50: #FFF9E6; /* Secondary Tint (Light Mode) */
+  --color-indigo-100: #FFF7D6;
+  --color-indigo-200: #FFEAA3;
+  --color-indigo-300: #FFD96B;
+  --color-indigo-400: #FACC15; /* Primary Color (Light/Default Mode) */
+  --color-indigo-500: #FACC15; /* Primary Color (Light/Default Mode) */
+  --color-indigo-600: #d4a70b;
+  --color-indigo-650: #b08705;
+  --color-indigo-700: #8c6a02;
+  --color-indigo-800: #7A5116;
+  --color-indigo-900: #54370E;
+  --color-indigo-950: #2A2315; /* Secondary Tint (Dark Mode) */
+
+  --color-violet-500: #FACC15; /* Primary Color (Light/Default Mode) */
+  --color-violet-600: #d4a70b;
+  
+  --color-purple-500: #FACC15; /* Primary Color (Dark Mode) */
+  --color-pink-500: #FACC15;
+
+  /* Accent / Success / Credit Green */
+  --color-emerald-400: #00B894;
+  --color-emerald-500: #00B894;
+  --color-emerald-600: #009e7c;
+
+  /* Destructive / Debit Red */
+  --color-rose-400: #E74C3C;
+  --color-rose-500: #E74C3C;
+  --color-rose-600: #d63e2b;
+
+  /* Warning Yellow */
+  --color-amber-400: #FDCB6E;
+  --color-amber-500: #FDCB6E;
+  --color-amber-600: #e2b35a;
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    @apply bg-[#430016] text-slate-100 antialiased selection:bg-indigo-500 selection:text-white overflow-x-hidden;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    @apply tracking-tight;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(250, 204, 21, 0.15);
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(250, 204, 21, 0.45);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+}
+
+/* Glassmorphism custom classes */
+.glass-panel {
+  background: rgba(8, 12, 26, 0.55);
+  backdrop-filter: blur(24px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.05),
+    0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.glass-panel-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-panel-hover:hover {
+  background: rgba(12, 18, 38, 0.75);
+  border-color: rgba(250, 204, 21, 0.3);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    0 0 35px rgba(250, 204, 21, 0.12),
+    0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  transform: translateY(-3px);
+}
+
+/* Neon glow indicators */
+.neon-glow-indigo {
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.45);
+}
+.neon-glow-emerald {
+  box-shadow: 0 0 15px rgba(0, 184, 148, 0.45);
+}
+.neon-glow-rose {
+  box-shadow: 0 0 15px rgba(231, 76, 60, 0.45);
+}
+.neon-glow-amber {
+  box-shadow: 0 0 15px rgba(253, 203, 110, 0.45);
+}
+
+/* Background animated mesh keyframes */
+@keyframes float-blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(50px, -70px) scale(1.15);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.95);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: float-blob 20s infinite ease-in-out;
+}
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* LED pulse */
+@keyframes pulse-led {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+.led-pulse {
+  animation: pulse-led 2s infinite ease-in-out;
+}
+
+/* Holographic / metallic cards */
+.holo-card {
+  background: linear-gradient(135deg, #131722 0%, #0c0f16 100%);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+.holo-card-frozen {
+  background: linear-gradient(135deg, #1e2640 0%, #111827 100%);
+  filter: saturate(40%) contrast(90%);
+  opacity: 0.75;
+}

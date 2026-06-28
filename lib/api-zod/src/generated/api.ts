@@ -51,11 +51,41 @@ export const LoginResponse = zod.object({
   "lastName": zod.string(),
   "email": zod.string(),
   "phone": zod.string(),
+  "isEmailVerified": zod.boolean(),
   "avatarUrl": zod.string().nullish(),
   "bvn": zod.string().nullish(),
+  "nin": zod.string().nullish(),
   "kycStatus": zod.enum(['pending', 'verified', 'failed']).optional(),
   "createdAt": zod.coerce.date()
 })
+})
+
+
+/**
+ * @summary Send email verification OTP
+ */
+export const SendOtpBody = zod.object({
+  "email": zod.string().email()
+})
+
+export const SendOtpResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "devCode": zod.string().optional()
+})
+
+
+/**
+ * @summary Verify email verification OTP
+ */
+export const VerifyOtpBody = zod.object({
+  "email": zod.string().email(),
+  "code": zod.string()
+})
+
+export const VerifyOtpResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
 })
 
 
@@ -68,8 +98,10 @@ export const GetProfileResponse = zod.object({
   "lastName": zod.string(),
   "email": zod.string(),
   "phone": zod.string(),
+  "isEmailVerified": zod.boolean(),
   "avatarUrl": zod.string().nullish(),
   "bvn": zod.string().nullish(),
+  "nin": zod.string().nullish(),
   "kycStatus": zod.enum(['pending', 'verified', 'failed']).optional(),
   "createdAt": zod.coerce.date()
 })
@@ -81,6 +113,9 @@ export const GetProfileResponse = zod.object({
 export const updateProfileBodyBvnMin = 11;
 export const updateProfileBodyBvnMax = 11;
 
+export const updateProfileBodyNinMin = 11;
+export const updateProfileBodyNinMax = 11;
+
 
 
 export const UpdateProfileBody = zod.object({
@@ -88,7 +123,8 @@ export const UpdateProfileBody = zod.object({
   "lastName": zod.string().optional(),
   "phone": zod.string().optional(),
   "avatarUrl": zod.string().optional(),
-  "bvn": zod.string().min(updateProfileBodyBvnMin).max(updateProfileBodyBvnMax).optional()
+  "bvn": zod.string().min(updateProfileBodyBvnMin).max(updateProfileBodyBvnMax).optional(),
+  "nin": zod.string().min(updateProfileBodyNinMin).max(updateProfileBodyNinMax).optional()
 })
 
 export const UpdateProfileResponse = zod.object({
@@ -97,8 +133,10 @@ export const UpdateProfileResponse = zod.object({
   "lastName": zod.string(),
   "email": zod.string(),
   "phone": zod.string(),
+  "isEmailVerified": zod.boolean(),
   "avatarUrl": zod.string().nullish(),
   "bvn": zod.string().nullish(),
+  "nin": zod.string().nullish(),
   "kycStatus": zod.enum(['pending', 'verified', 'failed']).optional(),
   "createdAt": zod.coerce.date()
 })
@@ -296,6 +334,48 @@ export const CreateTransferBody = zod.object({
   "recipientBank": zod.string(),
   "recipientAccount": zod.string(),
   "description": zod.string()
+})
+
+
+/**
+ * @summary Verify account holder name from NIBSS EasyPay Name Enquiry
+ */
+export const VerifyNameBody = zod.object({
+  "accountNumber": zod.string(),
+  "bankCode": zod.string()
+})
+
+export const VerifyNameResponse = zod.object({
+  "success": zod.boolean(),
+  "accountName": zod.string().optional(),
+  "error": zod.string().optional()
+})
+
+
+/**
+ * @summary Query NIBSS EasyPay transfer status
+ */
+export const QueryTransferStatusParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const QueryTransferStatusResponse = zod.object({
+  "success": zod.boolean(),
+  "status": zod.enum(['completed', 'failed', 'pending']),
+  "error": zod.string().optional()
+})
+
+
+/**
+ * @summary Webhook for NIBSS EasyPay transfer status callbacks
+ */
+export const EasyPayWebhookBody = zod.object({
+  "reference": zod.string(),
+  "status": zod.enum(['completed', 'failed'])
+})
+
+export const EasyPayWebhookResponse = zod.object({
+  "success": zod.boolean()
 })
 
 
@@ -663,5 +743,31 @@ export const GetAccountStatementResponseItem = zod.object({
   "createdAt": zod.coerce.date()
 })
 export const GetAccountStatementResponse = zod.array(GetAccountStatementResponseItem)
+
+
+/**
+ * @summary Get active promotional and ad banners
+ */
+export const GetBannersResponseItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "description": zod.string().nullable(),
+  "imageUrl": zod.string().nullable(),
+  "linkUrl": zod.string().nullable(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const GetBannersResponse = zod.array(GetBannersResponseItem)
+
+
+/**
+ * @summary Get system support contact details (email, whatsapp, live chat)
+ */
+export const GetSupportSettingsResponse = zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "whatsapp": zod.string(),
+  "liveChatUrl": zod.string()
+})
 
 

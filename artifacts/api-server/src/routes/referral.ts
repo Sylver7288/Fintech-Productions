@@ -7,7 +7,7 @@ const router: IRouter = Router();
 router.get("/referral", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const userId = req.userId!;
   const code = "NOVA" + createHash("sha256").update(userId).digest("hex").slice(0, 6).toUpperCase();
-  const shareUrl = `https://novapay.app/join?ref=${code}`;
+  const shareUrl = `https://novamoni.app/join?ref=${code}`;
 
   res.json({
     code,

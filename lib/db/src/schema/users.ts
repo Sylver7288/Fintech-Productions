@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, varchar, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -11,7 +11,9 @@ export const usersTable = pgTable("users", {
   phone: varchar("phone", { length: 20 }).notNull(),
   avatarUrl: text("avatar_url"),
   bvn: text("bvn"),
+  nin: text("nin"),
   kycStatus: text("kyc_status").notNull().default("pending"),
+  isEmailVerified: boolean("is_email_verified").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

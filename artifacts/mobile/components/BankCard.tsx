@@ -38,7 +38,7 @@ export function BankCard({ card, balance, onFreeze, compact = false }: BankCardP
 
       <View style={styles.topRow}>
         <View>
-          <Text style={styles.bankName}>NovaPay</Text>
+          <Text style={styles.bankName}>Novamoni</Text>
           <Text style={styles.cardType}>{card.type === "virtual" ? "Virtual Card" : "Physical Card"}</Text>
         </View>
         <View style={styles.chip}>
@@ -49,7 +49,7 @@ export function BankCard({ card, balance, onFreeze, compact = false }: BankCardP
       {balance !== undefined && !compact && (
         <View style={styles.balanceSection}>
           <Text style={styles.balanceLabel}>Available Balance</Text>
-          <Text style={styles.balanceAmount}>₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</Text>
+          <Text style={[styles.balanceAmount, { color: colors.primary }]}>₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</Text>
         </View>
       )}
 

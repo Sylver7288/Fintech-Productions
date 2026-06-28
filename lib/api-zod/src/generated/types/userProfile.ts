@@ -13,10 +13,13 @@ export interface UserProfile {
   lastName: string;
   email: string;
   phone: string;
+  isEmailVerified: boolean;
   /** @nullable */
   avatarUrl?: string | null;
   /** @nullable */
   bvn?: string | null;
+  /** @nullable */
+  nin?: string | null;
   kycStatus?: UserProfileKycStatus;
   createdAt: Date;
 }

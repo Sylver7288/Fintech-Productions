@@ -14,6 +14,9 @@ import loansRouter from "./loans";
 import analyticsRouter from "./analytics";
 import referralRouter from "./referral";
 import beneficiariesRouter from "./beneficiaries";
+import adminRouter from "./admin";
+import notificationsRouter from "./notifications";
+import bannersRouter from "./banners";
 
 const router: IRouter = Router();
 
@@ -32,5 +35,8 @@ router.use(loansRouter);
 router.use(analyticsRouter);
 router.use(referralRouter);
 router.use(beneficiariesRouter);
+router.use(adminRouter);
+router.use(notificationsRouter);
+router.use(bannersRouter);
 
 export default router;

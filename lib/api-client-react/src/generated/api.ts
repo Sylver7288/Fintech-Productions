@@ -24,6 +24,7 @@ import type {
   AirtimeInput,
   AnalyticsSummary,
   AuthResponse,
+  Banner,
   Beneficiary,
   BeneficiaryInput,
   BillInput,
@@ -31,6 +32,8 @@ import type {
   CardFreezeInput,
   CardInput,
   DashboardSummary,
+  EasyPayWebhook200,
+  EasyPayWebhookInput,
   ErrorResponse,
   GetAnalyticsParams,
   GetTransactionsParams,
@@ -38,6 +41,8 @@ import type {
   Loan,
   LoanInput,
   LoginInput,
+  NameEnquiryInput,
+  NameEnquiryResponse,
   ProfileUpdate,
   ReferralInfo,
   RegisterInput,
@@ -47,10 +52,16 @@ import type {
   SavingsUpdate,
   ScheduledTransfer,
   ScheduledTransferInput,
+  SendOtp200,
+  SendOtpInput,
+  SupportSettings,
   Transaction,
   TransactionList,
   TransferInput,
-  UserProfile
+  TransferStatusResponse,
+  UserProfile,
+  VerifyOtp200,
+  VerifyOtpInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -283,6 +294,148 @@ export const useLogin = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getLoginMutationOptions(options));
+    }
+
+export const getSendOtpUrl = () => {
+
+
+
+
+  return `/api/auth/send-otp`
+}
+
+/**
+ * @summary Send email verification OTP
+ */
+export const sendOtp = async (sendOtpInput: SendOtpInput, options?: RequestInit): Promise<SendOtp200> => {
+
+  return customFetch<SendOtp200>(getSendOtpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sendOtpInput,)
+  }
+);}
+
+
+
+
+export const getSendOtpMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendOtp>>, TError,{data: BodyType<SendOtpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendOtp>>, TError,{data: BodyType<SendOtpInput>}, TContext> => {
+
+const mutationKey = ['sendOtp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendOtp>>, {data: BodyType<SendOtpInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendOtp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendOtpMutationResult = NonNullable<Awaited<ReturnType<typeof sendOtp>>>
+    export type SendOtpMutationBody = BodyType<SendOtpInput>
+    export type SendOtpMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Send email verification OTP
+ */
+export const useSendOtp = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendOtp>>, TError,{data: BodyType<SendOtpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendOtp>>,
+        TError,
+        {data: BodyType<SendOtpInput>},
+        TContext
+      > => {
+      return useMutation(getSendOtpMutationOptions(options));
+    }
+
+export const getVerifyOtpUrl = () => {
+
+
+
+
+  return `/api/auth/verify-otp`
+}
+
+/**
+ * @summary Verify email verification OTP
+ */
+export const verifyOtp = async (verifyOtpInput: VerifyOtpInput, options?: RequestInit): Promise<VerifyOtp200> => {
+
+  return customFetch<VerifyOtp200>(getVerifyOtpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyOtpInput,)
+  }
+);}
+
+
+
+
+export const getVerifyOtpMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyOtp>>, TError,{data: BodyType<VerifyOtpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyOtp>>, TError,{data: BodyType<VerifyOtpInput>}, TContext> => {
+
+const mutationKey = ['verifyOtp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyOtp>>, {data: BodyType<VerifyOtpInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyOtp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyOtpMutationResult = NonNullable<Awaited<ReturnType<typeof verifyOtp>>>
+    export type VerifyOtpMutationBody = BodyType<VerifyOtpInput>
+    export type VerifyOtpMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Verify email verification OTP
+ */
+export const useVerifyOtp = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyOtp>>, TError,{data: BodyType<VerifyOtpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyOtp>>,
+        TError,
+        {data: BodyType<VerifyOtpInput>},
+        TContext
+      > => {
+      return useMutation(getVerifyOtpMutationOptions(options));
     }
 
 export const getGetProfileUrl = () => {
@@ -1114,6 +1267,225 @@ export const useCreateTransfer = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getCreateTransferMutationOptions(options));
+    }
+
+export const getVerifyNameUrl = () => {
+
+
+
+
+  return `/api/transfers/name-enquiry`
+}
+
+/**
+ * @summary Verify account holder name from NIBSS EasyPay Name Enquiry
+ */
+export const verifyName = async (nameEnquiryInput: NameEnquiryInput, options?: RequestInit): Promise<NameEnquiryResponse> => {
+
+  return customFetch<NameEnquiryResponse>(getVerifyNameUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nameEnquiryInput,)
+  }
+);}
+
+
+
+
+export const getVerifyNameMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyName>>, TError,{data: BodyType<NameEnquiryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyName>>, TError,{data: BodyType<NameEnquiryInput>}, TContext> => {
+
+const mutationKey = ['verifyName'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyName>>, {data: BodyType<NameEnquiryInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyName(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyNameMutationResult = NonNullable<Awaited<ReturnType<typeof verifyName>>>
+    export type VerifyNameMutationBody = BodyType<NameEnquiryInput>
+    export type VerifyNameMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Verify account holder name from NIBSS EasyPay Name Enquiry
+ */
+export const useVerifyName = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyName>>, TError,{data: BodyType<NameEnquiryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyName>>,
+        TError,
+        {data: BodyType<NameEnquiryInput>},
+        TContext
+      > => {
+      return useMutation(getVerifyNameMutationOptions(options));
+    }
+
+export const getQueryTransferStatusUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transfers/${reference}/status`
+}
+
+/**
+ * @summary Query NIBSS EasyPay transfer status
+ */
+export const queryTransferStatus = async (reference: string, options?: RequestInit): Promise<TransferStatusResponse> => {
+
+  return customFetch<TransferStatusResponse>(getQueryTransferStatusUrl(reference),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getQueryTransferStatusQueryKey = (reference: string,) => {
+    return [
+    `/api/transfers/${reference}/status`
+    ] as const;
+    }
+
+
+export const getQueryTransferStatusQueryOptions = <TData = Awaited<ReturnType<typeof queryTransferStatus>>, TError = ErrorType<ErrorResponse>>(reference: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof queryTransferStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getQueryTransferStatusQueryKey(reference);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof queryTransferStatus>>> = ({ signal }) => queryTransferStatus(reference, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(reference), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof queryTransferStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type QueryTransferStatusQueryResult = NonNullable<Awaited<ReturnType<typeof queryTransferStatus>>>
+export type QueryTransferStatusQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Query NIBSS EasyPay transfer status
+ */
+
+export function useQueryTransferStatus<TData = Awaited<ReturnType<typeof queryTransferStatus>>, TError = ErrorType<ErrorResponse>>(
+ reference: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof queryTransferStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getQueryTransferStatusQueryOptions(reference,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getEasyPayWebhookUrl = () => {
+
+
+
+
+  return `/api/transfers/webhook/easypay`
+}
+
+/**
+ * @summary Webhook for NIBSS EasyPay transfer status callbacks
+ */
+export const easyPayWebhook = async (easyPayWebhookInput: EasyPayWebhookInput, options?: RequestInit): Promise<EasyPayWebhook200> => {
+
+  return customFetch<EasyPayWebhook200>(getEasyPayWebhookUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      easyPayWebhookInput,)
+  }
+);}
+
+
+
+
+export const getEasyPayWebhookMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof easyPayWebhook>>, TError,{data: BodyType<EasyPayWebhookInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof easyPayWebhook>>, TError,{data: BodyType<EasyPayWebhookInput>}, TContext> => {
+
+const mutationKey = ['easyPayWebhook'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof easyPayWebhook>>, {data: BodyType<EasyPayWebhookInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  easyPayWebhook(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EasyPayWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof easyPayWebhook>>>
+    export type EasyPayWebhookMutationBody = BodyType<EasyPayWebhookInput>
+    export type EasyPayWebhookMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Webhook for NIBSS EasyPay transfer status callbacks
+ */
+export const useEasyPayWebhook = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof easyPayWebhook>>, TError,{data: BodyType<EasyPayWebhookInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof easyPayWebhook>>,
+        TError,
+        {data: BodyType<EasyPayWebhookInput>},
+        TContext
+      > => {
+      return useMutation(getEasyPayWebhookMutationOptions(options));
     }
 
 export const getGetSavingsUrl = () => {
@@ -2584,6 +2956,160 @@ export function useGetAccountStatement<TData = Awaited<ReturnType<typeof getAcco
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAccountStatementQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBannersUrl = () => {
+
+
+
+
+  return `/api/banners`
+}
+
+/**
+ * @summary Get active promotional and ad banners
+ */
+export const getBanners = async ( options?: RequestInit): Promise<Banner[]> => {
+
+  return customFetch<Banner[]>(getGetBannersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBannersQueryKey = () => {
+    return [
+    `/api/banners`
+    ] as const;
+    }
+
+
+export const getGetBannersQueryOptions = <TData = Awaited<ReturnType<typeof getBanners>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBanners>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBannersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBanners>>> = ({ signal }) => getBanners({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBanners>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBannersQueryResult = NonNullable<Awaited<ReturnType<typeof getBanners>>>
+export type GetBannersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get active promotional and ad banners
+ */
+
+export function useGetBanners<TData = Awaited<ReturnType<typeof getBanners>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBanners>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBannersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSupportSettingsUrl = () => {
+
+
+
+
+  return `/api/support-settings`
+}
+
+/**
+ * @summary Get system support contact details (email, whatsapp, live chat)
+ */
+export const getSupportSettings = async ( options?: RequestInit): Promise<SupportSettings> => {
+
+  return customFetch<SupportSettings>(getGetSupportSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupportSettingsQueryKey = () => {
+    return [
+    `/api/support-settings`
+    ] as const;
+    }
+
+
+export const getGetSupportSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getSupportSettings>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSupportSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupportSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupportSettings>>> = ({ signal }) => getSupportSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupportSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSupportSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getSupportSettings>>>
+export type GetSupportSettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get system support contact details (email, whatsapp, live chat)
+ */
+
+export function useGetSupportSettings<TData = Awaited<ReturnType<typeof getSupportSettings>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSupportSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSupportSettingsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
