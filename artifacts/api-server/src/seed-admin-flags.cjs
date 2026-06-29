@@ -22,11 +22,11 @@ async function seed() {
     // Seed Admin
     const passHash = hashPassword("AdminPass123!");
     await client.query(`
-      INSERT INTO admins (id, username, password_hash, created_at, updated_at)
-      VALUES ($1, $2, $3, NOW(), NOW())
-      ON CONFLICT (username) DO NOTHING
+      INSERT INTO admins (id, username, password_hash, role, created_at, updated_at)
+      VALUES ($1, $2, $3, 'superadmin', NOW(), NOW())
+      ON CONFLICT (username) DO UPDATE SET role = 'superadmin'
     `, [crypto.randomUUID(), 'admin', passHash]);
-    console.log("Seeded admin user.");
+    console.log("Seeded and verified admin user has 'superadmin' role.");
 
     // Seed Flags
     const flags = [

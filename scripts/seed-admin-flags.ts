@@ -27,10 +27,15 @@ async function seed() {
         id: crypto.randomUUID(),
         username: defaultAdminUsername,
         passwordHash,
+        role: "superadmin",
       });
       console.log(`Seeded default admin: ${defaultAdminUsername} / ${defaultAdminPassword}`);
     } else {
-      console.log("Admin account already exists, skipping...");
+      // Ensure the default admin is updated to superadmin
+      await db.update(adminsTable)
+        .set({ role: "superadmin" })
+        .where(eq(adminsTable.username, defaultAdminUsername));
+      console.log("Admin account already exists. Ensured it has 'superadmin' role.");
     }
 
     // 2. Seed Feature Flags
