@@ -18,7 +18,8 @@ import {
   Layers,
   Megaphone,
   HelpCircle,
-  ChevronDown
+  ChevronDown,
+  Folder
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -905,6 +906,46 @@ export default function App() {
       return serviceName.toLowerCase().includes(serviceSearch.toLowerCase()) || flag.key.toLowerCase().includes(serviceSearch.toLowerCase());
     });
 
+    const SERVICE_CATEGORIES: { [key: string]: string[] } = {
+      "E-commerce": ["aliexpress", "gift-cards", "chowdeck"],
+      "International Services": ["remit"],
+      "Bills Payment": [
+        "electricity", "solar", "products-and-services", "school-exam", "internet-services", 
+        "financial-services", "invoice-payments", "aid-grants-and-donations", "religious", 
+        "government-payments", "embassies", "tv-others", "shopping", "online-shopping", 
+        "merchant-payments", "blackberry", "paychoice", "commerce-retail-trade", 
+        "prepaid-card-services", "international-airtime", "transport-toll", "travel-hotel"
+      ],
+      "Finance": ["owealth", "fixed", "safebox", "targets", "spend-save", "bnpl"],
+      "Rewards": ["daily-check-in", "play4achild", "refer-earn"],
+      "Others": ["physical-card", "virtual-card"]
+    };
+
+    // Grouping
+    const groupedServices: { [key: string]: typeof filteredServices } = {
+      "E-commerce": [],
+      "International Services": [],
+      "Bills Payment": [],
+      "Finance": [],
+      "Rewards": [],
+      "Others": [],
+    };
+
+    filteredServices.forEach(flag => {
+      const slug = flag.key.replace("service-", "");
+      let placed = false;
+      for (const [category, slugs] of Object.entries(SERVICE_CATEGORIES)) {
+        if (slugs.includes(slug)) {
+          groupedServices[category].push(flag);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        groupedServices["Others"].push(flag);
+      }
+    });
+
     return (
       <div className="border-t border-white/[0.04] pt-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -940,130 +981,150 @@ export default function App() {
             No services found matching "{serviceSearch}"
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredServices.map((flag) => {
-              const serviceName = flag.description.replace("Individual service toggle for: ", "");
-              const visibilityKey = flag.key.replace("service-", "visibility-");
-              const visFlag = flags.find(f => f.key === visibilityKey);
-              const isExpanded = expandedService === flag.id;
+          <div className="space-y-6">
+            {Object.entries(groupedServices).map(([categoryName, flagsInCategory]) => {
+              if (flagsInCategory.length === 0) return null;
 
               return (
-                <div 
-                  key={flag.id} 
-                  className={`border rounded-2xl overflow-hidden transition-all duration-300 bg-slate-950/25 shadow-sm ${
-                    isExpanded 
-                      ? "border-indigo-500/40 ring-1 ring-indigo-500/10" 
-                      : "border-white/[0.04] hover:border-indigo-500/25 hover:bg-slate-950/35"
-                  }`}
-                >
-                  <button
-                    onClick={() => setExpandedService(isExpanded ? null : flag.id)}
-                    className="w-full px-5 py-4 flex items-center justify-between text-left focus:outline-none bg-slate-950/40 hover:bg-slate-900/20 transition duration-150 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-inner ${
-                        flag.isEnabled 
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/15" 
-                          : "bg-rose-500/10 text-rose-400 border border-rose-500/15"
-                      }`}>
-                        {serviceName.charAt(0)}
-                      </div>
-                      <div>
-                        <h5 className="font-bold text-white text-sm tracking-tight">{serviceName}</h5>
-                        <span className="font-mono text-[9px] text-slate-500 mt-1 block truncate">
-                          {flag.key.replace("service-", "")}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2 flex-wrap justify-end">
-                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg border ${
-                          visFlag?.isEnabled 
-                            ? "bg-indigo-950/50 text-indigo-400 border-indigo-500/20" 
-                            : "bg-slate-950 text-slate-500 border-white/[0.02]"
-                        }`}>
-                          {visFlag?.isEnabled ? "Visible in App" : "Hidden in App"}
-                        </span>
-                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg border ${
-                          flag.isEnabled 
-                            ? "bg-emerald-950/50 text-emerald-450 border-emerald-500/20" 
-                            : "bg-rose-950/50 text-rose-400 border-rose-500/20"
-                        }`}>
-                          {flag.isEnabled ? "ON (Active)" : "OFF (Offline)"}
-                        </span>
-                      </div>
-                      <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${isExpanded ? "transform rotate-180 text-indigo-400" : ""}`} />
-                    </div>
-                  </button>
+                <div key={categoryName} className="bg-slate-950/15 border border-white/[0.03] p-5 rounded-2xl">
+                  {/* Category Header */}
+                  <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/[0.02]">
+                    <Folder className="h-4 w-4 text-indigo-400" />
+                    <h5 className="text-xs font-black text-slate-200 uppercase tracking-wide">{categoryName}</h5>
+                    <span className="text-[9px] bg-slate-950 border border-white/[0.04] text-slate-400 px-2 py-0.5 rounded-full font-bold">
+                      {flagsInCategory.length}
+                    </span>
+                  </div>
 
-                  {isExpanded && (
-                    <div className="px-6 py-5 bg-slate-950/70 border-t border-white/[0.03] space-y-4 animate-slideDown">
-                      <div className="bg-slate-900/40 border border-white/[0.02] p-4 rounded-xl">
-                        <p className="text-slate-400 text-xs leading-relaxed font-medium">
-                          Configuration panel for <strong>{serviceName}</strong>. Show or hide this service from the mobile home dashboard or simulate downtime to handle updates.
-                        </p>
-                      </div>
+                  {/* Services in Category */}
+                  <div className="space-y-3">
+                    {flagsInCategory.map((flag) => {
+                      const serviceName = flag.description.replace("Individual service toggle for: ", "");
+                      const visibilityKey = flag.key.replace("service-", "visibility-");
+                      const visFlag = flags.find(f => f.key === visibilityKey);
+                      const isExpanded = expandedService === flag.id;
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* 1. Visibility toggle */}
-                        <div className="bg-slate-950/40 border border-white/[0.03] p-4.5 rounded-xl flex items-center justify-between shadow-inner">
-                          <div>
-                            <span className="text-xs font-bold text-slate-200 block">Show in Mobile App</span>
-                            <span className="text-[10px] text-slate-500 font-medium">Determines if the icon displays in grid</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className={`text-[10px] font-black uppercase tracking-wider ${visFlag?.isEnabled ? "text-indigo-400" : "text-slate-500"}`}>
-                              {visFlag?.isEnabled ? "VISIBLE" : "HIDDEN"}
-                            </span>
-                            {visFlag && (
-                              <button 
-                                onClick={() => handleToggleFlag(visFlag.id, visFlag.isEnabled)}
-                                className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border border-white/[0.08] transition-all duration-300 ease-in-out focus:outline-none ${
-                                  visFlag.isEnabled 
-                                    ? "bg-gradient-to-r from-indigo-650 to-violet-650 shadow-[0_0_8px_rgba(229,169,60,0.25)]" 
-                                    : "bg-slate-900 shadow-inner"
-                                }`}
-                              >
-                                <span 
-                                  className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.4)] ring-0 transition duration-300 ease-in-out mt-0.5 ${
-                                    visFlag.isEnabled ? "translate-x-5" : "translate-x-0.5"
-                                  }`}
-                                />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* 2. Functionality toggle */}
-                        <div className="bg-slate-950/40 border border-white/[0.03] p-4.5 rounded-xl flex items-center justify-between shadow-inner">
-                          <div>
-                            <span className="text-xs font-bold text-slate-200 block">Service Active State</span>
-                            <span className="text-[10px] text-slate-500 font-medium">ON sets live, OFF triggers offline alert</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className={`text-[10px] font-black uppercase tracking-wider ${flag.isEnabled ? "text-emerald-400" : "text-rose-450"}`}>
-                              {flag.isEnabled ? "ON (ACTIVE)" : "OFF (OFFLINE)"}
-                            </span>
-                            <button 
-                              onClick={() => handleToggleFlag(flag.id, flag.isEnabled)}
-                              className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border border-white/[0.08] transition-all duration-300 ease-in-out focus:outline-none ${
+                      return (
+                        <div 
+                          key={flag.id} 
+                          className={`border rounded-2xl overflow-hidden transition-all duration-300 bg-slate-950/25 shadow-sm ${
+                            isExpanded 
+                              ? "border-indigo-500/40 ring-1 ring-indigo-500/10" 
+                              : "border-white/[0.04] hover:border-indigo-500/25 hover:bg-slate-950/35"
+                          }`}
+                        >
+                          <button
+                            onClick={() => setExpandedService(isExpanded ? null : flag.id)}
+                            className="w-full px-5 py-4 flex items-center justify-between text-left focus:outline-none bg-slate-950/40 hover:bg-slate-900/20 transition duration-150 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-inner ${
                                 flag.isEnabled 
-                                  ? "bg-gradient-to-r from-emerald-650 to-teal-650 shadow-[0_0_8px_rgba(16,185,129,0.25)]" 
-                                  : "bg-slate-900 shadow-inner"
-                              }`}
-                            >
-                              <span 
-                                className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.4)] ring-0 transition duration-300 ease-in-out mt-0.5 ${
-                                  flag.isEnabled ? "translate-x-5" : "translate-x-0.5"
-                                }`}
-                              />
-                            </button>
-                          </div>
+                                  ? "bg-emerald-500/10 text-emerald-450 border border-emerald-500/15" 
+                                  : "bg-rose-500/10 text-rose-450 border border-rose-500/15"
+                              }`}>
+                                {serviceName.charAt(0)}
+                              </div>
+                              <div>
+                                <h5 className="font-bold text-white text-sm tracking-tight">{serviceName}</h5>
+                                <span className="font-mono text-[9px] text-slate-500 mt-1 block truncate">
+                                  {flag.key.replace("service-", "")}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2 flex-wrap justify-end">
+                                <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg border ${
+                                  visFlag?.isEnabled 
+                                    ? "bg-indigo-950/50 text-indigo-400 border-indigo-500/20" 
+                                    : "bg-slate-950 text-slate-500 border-white/[0.02]"
+                                }`}>
+                                  {visFlag?.isEnabled ? "Visible in App" : "Hidden in App"}
+                                </span>
+                                <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg border ${
+                                  flag.isEnabled 
+                                    ? "bg-emerald-950/50 text-emerald-450 border-emerald-500/20" 
+                                    : "bg-rose-950/50 text-rose-450 border-rose-500/20"
+                                }`}>
+                                  {flag.isEnabled ? "ON (Active)" : "OFF (Offline)"}
+                                </span>
+                              </div>
+                              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${isExpanded ? "transform rotate-180 text-indigo-400" : ""}`} />
+                            </div>
+                          </button>
+
+                          {isExpanded && (
+                            <div className="px-6 py-5 bg-slate-950/70 border-t border-white/[0.03] space-y-4 animate-slideDown">
+                              <div className="bg-slate-900/40 border border-white/[0.02] p-4 rounded-xl">
+                                <p className="text-slate-400 text-xs leading-relaxed font-medium">
+                                  Configuration panel for <strong>{serviceName}</strong>. Show or hide this service from the mobile home dashboard or simulate downtime to handle updates.
+                                </p>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* 1. Visibility toggle */}
+                                <div className="bg-slate-950/40 border border-white/[0.03] p-4.5 rounded-xl flex items-center justify-between shadow-inner">
+                                  <div>
+                                    <span className="text-xs font-bold text-slate-200 block">Show in Mobile App</span>
+                                    <span className="text-[10px] text-slate-500 font-medium">Determines if the icon displays in grid</span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className={`text-[10px] font-black uppercase tracking-wider ${visFlag?.isEnabled ? "text-indigo-400" : "text-slate-500"}`}>
+                                      {visFlag?.isEnabled ? "VISIBLE" : "HIDDEN"}
+                                    </span>
+                                    {visFlag && (
+                                      <button 
+                                        onClick={() => handleToggleFlag(visFlag.id, visFlag.isEnabled)}
+                                        className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border border-white/[0.08] transition-all duration-300 ease-in-out focus:outline-none ${
+                                          visFlag.isEnabled 
+                                            ? "bg-gradient-to-r from-indigo-650 to-violet-650 shadow-[0_0_8px_rgba(229,169,60,0.25)]" 
+                                            : "bg-slate-900 shadow-inner"
+                                        }`}
+                                      >
+                                        <span 
+                                          className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.4)] ring-0 transition duration-300 ease-in-out mt-0.5 ${
+                                            visFlag.isEnabled ? "translate-x-5" : "translate-x-0.5"
+                                          }`}
+                                        />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* 2. Functionality toggle */}
+                                <div className="bg-slate-950/40 border border-white/[0.03] p-4.5 rounded-xl flex items-center justify-between shadow-inner">
+                                  <div>
+                                    <span className="text-xs font-bold text-slate-200 block">Service Active State</span>
+                                    <span className="text-[10px] text-slate-500 font-medium">ON sets live, OFF triggers offline alert</span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className={`text-[10px] font-black uppercase tracking-wider ${flag.isEnabled ? "text-emerald-400" : "text-rose-450"}`}>
+                                      {flag.isEnabled ? "ON (ACTIVE)" : "OFF (OFFLINE)"}
+                                    </span>
+                                    <button 
+                                      onClick={() => handleToggleFlag(flag.id, flag.isEnabled)}
+                                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border border-white/[0.08] transition-all duration-300 ease-in-out focus:outline-none ${
+                                        flag.isEnabled 
+                                          ? "bg-gradient-to-r from-emerald-650 to-teal-650 shadow-[0_0_8px_rgba(16,185,129,0.25)]" 
+                                          : "bg-slate-900 shadow-inner"
+                                      }`}
+                                    >
+                                      <span 
+                                        className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.4)] ring-0 transition duration-300 ease-in-out mt-0.5 ${
+                                          flag.isEnabled ? "translate-x-5" : "translate-x-0.5"
+                                        }`}
+                                      />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  )}
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
